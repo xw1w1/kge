@@ -111,6 +111,7 @@ object ResourceLoader {
 
         var ebo = 0
         var indexCount = 0
+
         if (indices.isNotEmpty()) {
             ebo = GL15.glGenBuffers()
             val indexBuffer: IntBuffer = MemoryUtil.memAllocInt(indices.size)
@@ -123,12 +124,6 @@ object ResourceLoader {
 
         GL30.glBindVertexArray(0)
         MemoryUtil.memFree(vertexBuffer)
-
-        for (i in vertices.indices step 6) {
-            vertices[i + 3] *= -1f
-            vertices[i + 4] *= -1f
-            vertices[i + 5] *= -1f
-        }
 
         return GLMesh(
             vao = vao,
