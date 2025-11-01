@@ -126,8 +126,20 @@ class EditorUI(private val window: Window) {
                     val renderer = MeshRenderer(Primitives.pyramid())
                     it.addComponent(renderer)
                 }
+                if (ImGui.menuItem("Cone")) scene.create("Cone", scene) {
+                    val renderer = MeshRenderer(Primitives.cone())
+                    it.addComponent(renderer)
+                }
+                if (ImGui.menuItem("Torus")) scene.create("Torus", scene) {
+                    val renderer = MeshRenderer(Primitives.torus())
+                    it.addComponent(renderer)
+                }
                 if (ImGui.menuItem("Octagon")) scene.create("Octagon", scene) {
                     val renderer = MeshRenderer(Primitives.octagon())
+                    it.addComponent(renderer)
+                }
+                if (ImGui.menuItem("Polygon")) scene.create("Polygon", scene) {
+                    val renderer = MeshRenderer(Primitives.polygon())
                     it.addComponent(renderer)
                 }
                 if (ImGui.menuItem("DebugGrid")) scene.create("DebugGrid", scene) {
