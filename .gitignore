@@ -3,4 +3,4 @@
 /.idea/
 /.kotlin/
 /engine-core/build/
-/engine-editor/
+/engine-editor/build/
