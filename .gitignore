@@ -1,0 +1,6 @@
+/build/
+/.gradle/
+/.idea/
+/.kotlin/
+/engine-core/build/
+/engine-editor/
