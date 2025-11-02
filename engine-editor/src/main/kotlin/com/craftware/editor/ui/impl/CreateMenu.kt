@@ -4,7 +4,7 @@ import com.craftware.editor.EditorApp
 import com.craftware.editor.Primitives
 import com.craftware.editor.component.MeshRenderer
 import com.craftware.editor.standard.DirectionalLight
-import com.craftware.editor.light.PointLight
+import com.craftware.editor.standard.PointLight
 import com.craftware.engine.ExceptionFactory
 import imgui.ImGui
 
