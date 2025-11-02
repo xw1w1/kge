@@ -1,7 +1,7 @@
 package com.craftware.editor.viewport
 
 import com.craftware.editor.EditorCamera
-import com.craftware.editor.GameObject
+import com.craftware.editor.standard.GameObject
 import com.craftware.editor.component.MeshRenderer
 import com.craftware.editor.component.Transform
 import org.joml.Matrix4f
@@ -11,7 +11,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class Raycast(private val camera: EditorCamera) {
+class Raycaster(private val camera: EditorCamera) {
     fun getMouseRay(mouseX: Float, mouseY: Float, width: Int, height: Int): Pair<Vector3f, Vector3f> {
         val ndcX = (2.0f * mouseX) / width - 1.0f
         val ndcY = 1.0f - (2.0f * mouseY) / height
