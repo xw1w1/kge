@@ -1,10 +1,11 @@
 package com.craftware.editor.viewport
 
 import com.craftware.editor.ResourceLoader
-import com.craftware.editor.ui.impl.ViewportSettings
-import com.craftware.editor.GameObject
 import com.craftware.editor.component.Transform
-import org.joml.*
+import com.craftware.editor.standard.GameObject
+import com.craftware.editor.ui.impl.ViewportSettings
+import org.joml.Matrix4f
+import org.joml.Vector3f
 import kotlin.math.abs
 
 class GizmoManager {
@@ -14,8 +15,10 @@ class GizmoManager {
         private set
 
     private val dragStartHit = Vector3f()
-    private val dragStartWorld = Vector3f()
     private val dragPlaneNormal = Vector3f()
+
+    // хранит исходные позиции объектов при начале drag
+    private var originalPositions: Map<GameObject, Vector3f> = mapOf()
 
     private val temp = Vector3f()
 
@@ -28,28 +31,31 @@ class GizmoManager {
         )
     }
 
-    fun render(viewProj: Matrix4f, obj: GameObject, cameraPos: Vector3f) {
-        if (!obj.isActive) return
-        val t = obj.get<Transform>() ?: return
-        val worldPos = t.getWorldPosition(obj)
-        ViewportGizmo.render(viewProj, worldPos, selectedAxis ?: highlightedAxis, cameraPos)
+    fun render(viewProj: Matrix4f, gizmoPos: Vector3f, cameraPos: Vector3f) {
+        ViewportGizmo.render(viewProj, gizmoPos, selectedAxis ?: highlightedAxis, cameraPos)
     }
 
     fun handleMouse(
         rayOrigin: Vector3f,
         rayDir: Vector3f,
-        obj: GameObject?,
+        selectedObjects: List<GameObject>,
         isDown: Boolean,
         isClicked: Boolean,
         cameraPos: Vector3f
     ) {
-        if (obj == null) return
-        if (!obj.isActive) return
-        val transform = obj.get<Transform>() ?: return
-        val worldPos = transform.getWorldPosition(obj)
+        if (selectedObjects.isEmpty()) {
+            highlightedAxis = null
+            return
+        }
 
-        // compute scale for both render and hittests
-        val camDist = worldPos.distance(cameraPos)
+        val center = Vector3f()
+        for (obj in selectedObjects) {
+            val t = obj.get<Transform>() ?: continue
+            center.add(t.position)
+        }
+        center.div(selectedObjects.size.toFloat())
+
+        val camDist = center.distance(cameraPos)
         val scale = (camDist * ViewportSettings.camDistModifier)
             .coerceIn(ViewportSettings.coerceMinValue, ViewportSettings.coerceMaxValue)
         val axisLength = 1.0f * scale
@@ -57,24 +63,21 @@ class GizmoManager {
         val pickRadius = ViewportSettings.pickingAxisSize * scale
 
         if (!isDragging) {
-            highlightedAxis = detectHoverAxis(rayOrigin, rayDir, transform, obj, axisLength, pickRadius, headRad)
+            highlightedAxis = detectHoverAxis(rayOrigin, rayDir, center, axisLength, headRad, pickRadius)
         }
 
         if (isClicked && highlightedAxis != null && !isDragging) {
             selectedAxis = highlightedAxis
             isDragging = true
-            dragStartWorld.set(worldPos)
-            when (selectedAxis) {
-                Axis.X -> dragPlaneNormal.set(0f, 1f, 0f)
-                Axis.Y -> dragPlaneNormal.set(0f, 0f, 1f)
-                Axis.Z -> dragPlaneNormal.set(1f, 0f, 0f)
-                Axis.CENTER -> dragPlaneNormal.set(cameraPos).sub(worldPos).normalize()
-                Axis.PLANE_XY -> dragPlaneNormal.set(0f, 0f, 1f)
-                Axis.PLANE_XZ -> dragPlaneNormal.set(0f, 1f, 0f)
-                Axis.PLANE_YZ -> dragPlaneNormal.set(1f, 0f, 0f)
-                else -> dragPlaneNormal.set(cameraPos).sub(worldPos).normalize()
+
+            dragPlaneNormal.set(computePlaneNormal(selectedAxis!!, cameraPos, center))
+            getRayPlaneIntersection(rayOrigin, rayDir, center, dragPlaneNormal, dragStartHit)
+
+            originalPositions = selectedObjects.associateWith { obj ->
+                val t = obj.get<Transform>()!!
+                Vector3f(t.position)
             }
-            getRayPlaneIntersection(rayOrigin, rayDir, worldPos, dragPlaneNormal, dragStartHit)
+
             return
         }
 
@@ -85,71 +88,97 @@ class GizmoManager {
         }
 
         if (isDragging && selectedAxis != null) {
-            val currentHit = Vector3f()
-            if (!getRayPlaneIntersection(rayOrigin, rayDir, worldPos, dragPlaneNormal, currentHit)) return
-            val delta = Vector3f(currentHit).sub(dragStartHit)
-
-            when (selectedAxis) {
-                Axis.X, Axis.Y, Axis.Z -> {
-                    val axisDirLocal = when (selectedAxis) {
-                        Axis.X -> Vector3f(1f, 0f, 0f)
-                        Axis.Y -> Vector3f(0f, 1f, 0f)
-                        Axis.Z -> Vector3f(0f, 0f, 1f)
-                        else -> Vector3f(1f, 0f, 0f)
-                    }
-                    val model = transform.getWorldMatrix(obj)
-                    val worldAxis = Vector3f(axisDirLocal)
-                    model.transformDirection(worldAxis)
-                    worldAxis.normalize()
-                    val amount = delta.dot(worldAxis)
-                    temp.set(worldAxis).mul(amount)
-                    val newWorld = Vector3f(dragStartWorld).add(temp)
-                    transform.setWorldPosition(obj, newWorld)
-                }
-                Axis.CENTER -> {
-                    val newWorld = Vector3f(dragStartWorld).add(delta)
-                    transform.setWorldPosition(obj, newWorld)
-                }
-                Axis.PLANE_XY, Axis.PLANE_XZ, Axis.PLANE_YZ -> {
-                    val newWorld = Vector3f(dragStartWorld).add(delta)
-                    transform.setWorldPosition(obj, newWorld)
-                }
-                else -> {}
+            val hit = Vector3f()
+            if (!getRayPlaneIntersection(rayOrigin, rayDir, center, dragPlaneNormal, hit)) {
+                return
             }
+            val delta = Vector3f(hit).sub(dragStartHit)
+
+            for (obj in selectedObjects) {
+                val t = obj.get<Transform>() ?: continue
+                val orig = originalPositions[obj] ?: continue
+
+                when (selectedAxis) {
+                    Axis.X, Axis.Y, Axis.Z -> {
+                        val localAxis = when (selectedAxis) {
+                            Axis.X -> Vector3f(1f, 0f, 0f)
+                            Axis.Y -> Vector3f(0f, 1f, 0f)
+                            Axis.Z -> Vector3f(0f, 0f, 1f)
+                            else -> Vector3f(1f, 0f, 0f)
+                        }
+                        val model = t.getWorldMatrix(obj)
+                        val worldAxis = model.transformDirection(localAxis).normalize()
+                        val amount = delta.dot(worldAxis)
+                        temp.set(worldAxis).mul(amount)
+                        val newWorld = Vector3f(orig).add(temp)
+                        t.setWorldPosition(obj, newWorld)
+                    }
+                    Axis.CENTER -> {
+                        val newWorld = Vector3f(orig).add(delta)
+                        t.setWorldPosition(obj, newWorld)
+                    }
+                    Axis.PLANE_XY, Axis.PLANE_XZ, Axis.PLANE_YZ -> {
+                        val newWorld = Vector3f(orig).add(delta)
+                        t.setWorldPosition(obj, newWorld)
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun computePlaneNormal(axis: Axis, cameraPos: Vector3f, center: Vector3f): Vector3f {
+        return when (axis) {
+            Axis.X -> Vector3f(0f, 1f, 0f)
+            Axis.Y -> Vector3f(0f, 0f, 1f)
+            Axis.Z -> Vector3f(1f, 0f, 0f)
+            Axis.CENTER -> Vector3f(cameraPos).sub(center).normalize()
+            Axis.PLANE_XY -> Vector3f(0f, 0f, 1f)
+            Axis.PLANE_XZ -> Vector3f(0f, 1f, 0f)
+            Axis.PLANE_YZ -> Vector3f(1f, 0f, 0f)
         }
     }
 
     private fun detectHoverAxis(
         rayOrigin: Vector3f,
         rayDir: Vector3f,
-        transform: Transform,
-        obj: GameObject,
+        origin: Vector3f,
         axisLength: Float,
-        threshold: Float,
-        headRadius: Float
+        headRad: Float,
+        threshold: Float
     ): Axis? {
-        val pos = transform.getWorldPosition(obj)
-        val model = transform.getWorldMatrix(obj)
-
-        val xDir = Vector3f(1f, 0f, 0f); model.transformDirection(xDir); xDir.normalize()
-        val yDir = Vector3f(0f, 1f, 0f); model.transformDirection(yDir); yDir.normalize()
-        val zDir = Vector3f(0f, 0f, 1f); model.transformDirection(zDir); zDir.normalize()
-
-        // central axis
-        if (intersectSphere(rayOrigin, rayDir, pos, threshold * 5.0f)) return Axis.CENTER
-
-        // axes
-        if (intersectAxisCylinder(rayOrigin, rayDir, pos, xDir, axisLength, headRadius, threshold)) return Axis.X
-        if (intersectAxisCylinder(rayOrigin, rayDir, pos, yDir, axisLength, headRadius, threshold)) return Axis.Y
-        if (intersectAxisCylinder(rayOrigin, rayDir, pos, zDir, axisLength, headRadius, threshold)) return Axis.Z
-
-        // plane axis
-        val planeSize = axisLength * 1.0f
-        if (intersectPlaneHandle(rayOrigin, rayDir, pos, xDir, yDir, planeSize)) return Axis.PLANE_XY
-        if (intersectPlaneHandle(rayOrigin, rayDir, pos, xDir, zDir, planeSize)) return Axis.PLANE_XZ
-        if (intersectPlaneHandle(rayOrigin, rayDir, pos, yDir, zDir, planeSize)) return Axis.PLANE_YZ
-
+        if (intersectSphere(rayOrigin, rayDir, origin, threshold * 5f)) return Axis.CENTER
+        if (intersectAxisCylinder(rayOrigin, rayDir, origin, Vector3f(1f,0f,0f), axisLength, headRad, threshold)) return Axis.X
+        if (intersectAxisCylinder(rayOrigin, rayDir, origin, Vector3f(0f,1f,0f), axisLength, headRad, threshold)) return Axis.Y
+        if (intersectAxisCylinder(rayOrigin, rayDir, origin, Vector3f(0f,0f,1f), axisLength, headRad, threshold)) return Axis.Z
+        if (intersectPlaneHandle(rayOrigin, rayDir, origin, Vector3f(1f,0f,0f), Vector3f(0f,1f,0f), axisLength)) return Axis.PLANE_XY
+        if (intersectPlaneHandle(rayOrigin, rayDir, origin, Vector3f(1f,0f,0f), Vector3f(0f,0f,1f), axisLength)) return Axis.PLANE_XZ
+        if (intersectPlaneHandle(rayOrigin, rayDir, origin, Vector3f(0f,1f,0f), Vector3f(0f,0f,1f), axisLength)) return Axis.PLANE_YZ
         return null
+    }
+
+    private fun getRayPlaneIntersection(
+        rayOrigin: Vector3f,
+        rayDir: Vector3f,
+        planePoint: Vector3f,
+        planeNormal: Vector3f,
+        out: Vector3f
+    ): Boolean {
+        val denom = rayDir.dot(planeNormal)
+        if (abs(denom) < 1e-6f) return false
+        val t = Vector3f(planePoint).sub(rayOrigin).dot(planeNormal) / denom
+        if (t < 0f) return false
+        out.set(rayOrigin).fma(t, rayDir)
+        return true
+    }
+
+    private fun intersectSphere(rayOrigin: Vector3f, rayDir: Vector3f, center: Vector3f, radius: Float): Boolean {
+        val l = Vector3f(center).sub(rayOrigin)
+        val tca = l.dot(rayDir)
+        if (tca < 0f) return false
+        val d2 = l.lengthSquared() - tca * tca
+        return d2 <= radius * radius
     }
 
     private fun intersectAxisCylinder(
@@ -164,7 +193,7 @@ class GizmoManager {
         val (ptOnRay, ptOnAxis) = closestPointsBetweenLines(rayOrigin, rayDir, axisOrigin, axisDir)
         val dist = ptOnRay.distance(ptOnAxis)
         if (dist > (radius + threshold)) return false
-        val along = Vector3f(ptOnAxis).sub(axisOrigin).dot(Vector3f(axisDir).normalize())
+        val along = Vector3f(ptOnAxis).sub(axisOrigin).dot(axisDir.normalize())
         return along in 0f..axisLength
     }
 
@@ -179,30 +208,10 @@ class GizmoManager {
         val p0 = Vector3f(origin)
         val p1 = Vector3f(origin).fma(size, dirA)
         val p2 = Vector3f(origin).fma(size, dirB)
-        // plane normal
         val n = Vector3f(dirA).cross(dirB, Vector3f()).normalize()
         val hit = Vector3f()
         if (!getRayPlaneIntersection(rayOrigin, rayDir, p0, n, hit)) return false
-
         return pointInTriangle(hit, p0, p1, p2)
-    }
-
-    private fun pointInTriangle(p: Vector3f, a: Vector3f, b: Vector3f, c: Vector3f): Boolean {
-        val v0 = Vector3f(c).sub(a)
-        val v1 = Vector3f(b).sub(a)
-        val v2 = Vector3f(p).sub(a)
-
-        val dot00 = v0.dot(v0)
-        val dot01 = v0.dot(v1)
-        val dot02 = v0.dot(v2)
-        val dot11 = v1.dot(v1)
-        val dot12 = v1.dot(v2)
-
-        val invDenom = 1f / (dot00 * dot11 - dot01 * dot01).coerceAtLeast(1e-8f)
-        val u = (dot11 * dot02 - dot01 * dot12) * invDenom
-        val v = (dot00 * dot12 - dot01 * dot02) * invDenom
-
-        return u >= 0f && v >= 0f && u + v <= 1f
     }
 
     private fun closestPointsBetweenLines(p: Vector3f, u: Vector3f, q: Vector3f, v: Vector3f): Pair<Vector3f, Vector3f> {
@@ -226,26 +235,21 @@ class GizmoManager {
         return ptOnRay to ptOnAxis
     }
 
-    private fun getRayPlaneIntersection(
-        rayOrigin: Vector3f,
-        rayDir: Vector3f,
-        planePoint: Vector3f,
-        planeNormal: Vector3f,
-        out: Vector3f
-    ): Boolean {
-        val denom = rayDir.dot(planeNormal)
-        if (abs(denom) < 1e-6f) return false
-        val t = Vector3f(planePoint).sub(rayOrigin).dot(planeNormal) / denom
-        if (t < 0f) return false
-        out.set(rayOrigin).fma(t, rayDir)
-        return true
-    }
+    private fun pointInTriangle(p: Vector3f, a: Vector3f, b: Vector3f, c: Vector3f): Boolean {
+        val v0 = Vector3f(c).sub(a)
+        val v1 = Vector3f(b).sub(a)
+        val v2 = Vector3f(p).sub(a)
 
-    private fun intersectSphere(rayOrigin: Vector3f, rayDir: Vector3f, center: Vector3f, radius: Float): Boolean {
-        val L = Vector3f(center).sub(rayOrigin)
-        val tca = L.dot(rayDir)
-        if (tca < 0f) return false
-        val d2 = L.lengthSquared() - tca * tca
-        return d2 <= radius * radius
+        val dot00 = v0.dot(v0)
+        val dot01 = v0.dot(v1)
+        val dot02 = v0.dot(v2)
+        val dot11 = v1.dot(v1)
+        val dot12 = v1.dot(v2)
+
+        val invDenom = 1f / (dot00 * dot11 - dot01 * dot01).coerceAtLeast(1e-8f)
+        val u = (dot11 * dot02 - dot01 * dot12) * invDenom
+        val v = (dot00 * dot12 - dot01 * dot02) * invDenom
+
+        return u >= 0f && v >= 0f && u + v <= 1f
     }
 }

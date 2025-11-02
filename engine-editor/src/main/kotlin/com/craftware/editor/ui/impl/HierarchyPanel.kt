@@ -1,12 +1,10 @@
 package com.craftware.editor.ui.impl
 
-import com.craftware.editor.Selection
-import com.craftware.editor.ui.UIPanel
 import com.craftware.editor.Node
 import com.craftware.editor.NodeParent
-import com.craftware.editor.Primitives
 import com.craftware.editor.Scene
-import com.craftware.editor.component.MeshRenderer
+import com.craftware.editor.Selection
+import com.craftware.editor.ui.UIPanel
 import com.craftware.engine.imgui.menu
 import com.craftware.engine.imgui.menuItem
 import com.craftware.engine.imgui.popupContext
@@ -26,52 +24,7 @@ class HierarchyPanel(
 
     fun render() = render {
         if (ImGui.beginPopupContextWindow("HierarchyContext", 1)) {
-            if (ImGui.beginMenu("Create")) {
-                if (ImGui.menuItem("GameObject")) scene.createEmpty("GameObject")
-                if (ImGui.menuItem("Cube")) scene.createCube("Cube")
-                if (ImGui.menuItem("Plane")) scene.create("Plane", scene) {
-                    val renderer = MeshRenderer(Primitives.plane())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Sphere")) scene.create("Sphere", scene) {
-                    val renderer = MeshRenderer(Primitives.sphere())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Cylinder")) scene.create("Cylinder", scene) {
-                    val renderer = MeshRenderer(Primitives.cylinder())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Pyramid")) scene.create("Pyramid", scene) {
-                    val renderer = MeshRenderer(Primitives.pyramid())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Cone")) scene.create("Cone", scene) {
-                    val renderer = MeshRenderer(Primitives.cone())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Torus")) scene.create("Torus", scene) {
-                    val renderer = MeshRenderer(Primitives.torus())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Octagon")) scene.create("Octagon", scene) {
-                    val renderer = MeshRenderer(Primitives.octagon())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Polygon")) scene.create("Polygon", scene) {
-                    val renderer = MeshRenderer(Primitives.polygon())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("DebugGrid")) scene.create("DebugGrid", scene) {
-                    val renderer = MeshRenderer(Primitives.d_Grid())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("DebugAxis")) scene.create("DebugAxis", scene) {
-                    val renderer = MeshRenderer(Primitives.d_Axis())
-                    it.addComponent(renderer)
-                }
-
-                ImGui.endMenu()
-            }
+            CreateMenu.render()
             ImGui.endPopup()
         }
 
@@ -114,7 +67,7 @@ class HierarchyPanel(
         val nodeId = System.identityHashCode(node).toString()
         ImGui.pushID(nodeId)
 
-        val isSelected = selection.selected === node
+        val isSelected = selection.getSelectedObjects().contains(node)
         val hasChildren = node.getChildren().isNotEmpty()
 
         val flags = ImGuiTreeNodeFlags.OpenOnArrow or ImGuiTreeNodeFlags.SpanAvailWidth or
@@ -125,7 +78,13 @@ class HierarchyPanel(
         val itemClicked = ImGui.isItemClicked(0)
         val itemHovered = ImGui.isItemHovered()
 
-        if (itemClicked) selection.select(node)
+        if (itemClicked) {
+            if (ImGui.isKeyDown(ImGuiKey.LeftShift)) {
+                selection.add(node)
+            } else {
+                selection.select(node)
+            }
+        }
         if (itemHovered && ImGui.isMouseDoubleClicked(0)) {
             renamingNode = node
             renameBuffer.set(node.name)
@@ -165,7 +124,7 @@ class HierarchyPanel(
             }
             menuItem("Delete") {
                 node.parent?.removeChild(node)
-                if (selection.selected === node) selection.clear()
+                if (selection.getSelectedObjects().contains(node)) selection.clear()
             }
         }
 
@@ -193,7 +152,7 @@ class HierarchyPanel(
                 renamingNode = null
             }
 
-            if (ImGui.isKeyPressed(ImGui.getKeyIndex(ImGuiKey.Escape))) {
+            if (ImGui.isKeyPressed(ImGuiKey.Escape)) {
                 renamingNode = null
             }
         } else {

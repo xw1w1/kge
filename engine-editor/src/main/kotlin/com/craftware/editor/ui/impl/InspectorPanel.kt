@@ -2,7 +2,7 @@ package com.craftware.editor.ui.impl
 
 import com.craftware.editor.Selection
 import com.craftware.editor.ui.UIPanel
-import com.craftware.editor.GameObject
+import com.craftware.editor.standard.GameObject
 import com.craftware.editor.Node
 import imgui.ImGui
 import imgui.flag.ImGuiInputTextFlags
@@ -14,9 +14,14 @@ class InspectorPanel(private val selection: Selection) : UIPanel("Inspector", "I
     private val renameBuffer = ImString(256)
 
     fun render() = render {
-        val selected = selection.selected
+        val selected = selection.getSelectedObjects().firstOrNull()
         if (selected == null) {
             ImGui.textDisabled("No selection")
+            return@render
+        }
+
+        if (selection.getSelectedObjects().size > 1) {
+            ImGui.textDisabled("Multiple selections (${selection.getSelectedObjects().size})")
             return@render
         }
 
@@ -40,7 +45,7 @@ class InspectorPanel(private val selection: Selection) : UIPanel("Inspector", "I
                 selected.name = renameBuffer.get()
                 renamingNode = null
             }
-            if (ImGui.isKeyPressed(ImGui.getKeyIndex(ImGuiKey.Escape))) {
+            if (ImGui.isKeyPressed(ImGuiKey.Escape)) {
                 renamingNode = null
             }
         } else {
@@ -59,7 +64,6 @@ class InspectorPanel(private val selection: Selection) : UIPanel("Inspector", "I
             ImGui.setCursorScreenPos(labelStart.x, labelStart.y + lineHeight)
         }
 
-        // IsActive toggle
         val windowRight = ImGui.getWindowPosX() + ImGui.getWindowContentRegionMaxX()
         val checkBoxSize = ImGui.getFrameHeight()
         val checkBoxX = windowRight - checkBoxSize - 10f
