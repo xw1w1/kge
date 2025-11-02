@@ -1,6 +1,7 @@
 package com.craftware.engine.imgui
 
 import imgui.ImGui
+import imgui.type.ImFloat
 
 fun popup(label: String, content: () -> Unit) {
     if (ImGui.beginPopup(label)) {
@@ -56,5 +57,11 @@ fun dragFloat(label: String, value: Float, speed: Float = 0.1f, min: Float = 0f,
     val arr = floatArrayOf(value)
     if (ImGui.dragFloat(label, arr, speed, min, max)) {
         onChange(arr[0])
+    }
+}
+
+fun inputFloat(label: String, value: Float, onChange: (Float) -> Unit) {
+    if (ImGui.inputFloat(label, ImFloat(value))) {
+        onChange(value)
     }
 }

@@ -1,6 +1,6 @@
 package com.craftware.editor.component
 
-import com.craftware.editor.GameObject
+import com.craftware.editor.standard.GameObject
 import imgui.ImGui
 import org.joml.Matrix4f
 import org.joml.Vector3f

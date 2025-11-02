@@ -8,37 +8,37 @@ import com.craftware.engine.imgui.textDisabled
 
 class ViewportSettings : UIPanel("ViewportSettings", "Viewport Settings"){
     fun render() = render {
-            checkbox("Show grid", showGrid) {
-                showGrid = !showGrid
-            }
-            checkbox("Show axis", showAxis) {
-                showAxis = !showAxis
-            }
-            separator()
+        checkbox("Show grid", showGrid) {
+            showGrid = !showGrid
+        }
+        checkbox("Show axis", showAxis) {
+            showAxis = !showAxis
+        }
+        separator()
 
-            textDisabled("Axis line width")
-            dragFloat("##Axis line width", axisLineWidth, onChange = {
-                axisLineWidth = it
-            })
+        textDisabled("Axis line width")
+        dragFloat("##Axis line width", axisLineWidth, onChange = {
+            axisLineWidth = it
+        })
 
-            separator()
+        separator()
 
-            textDisabled("Gizmos settings")
-            dragFloat("AxisHitboxSize", pickingAxisSize, onChange = {
-                pickingAxisSize = it
-            })
+        textDisabled("Gizmos settings")
+        dragFloat("AxisHitboxSize", pickingAxisSize, onChange = {
+            pickingAxisSize = it
+        })
 
-            dragFloat("CamDistModifier", camDistModifier, onChange = {
-                camDistModifier = it
-            })
+        dragFloat("CamDistModifier", camDistModifier, onChange = {
+            camDistModifier = it
+        })
 
-            dragFloat("CoerceMinValue", coerceMinValue, onChange = {
-                coerceMinValue = it
-            })
+        dragFloat("CoerceMinValue", coerceMinValue, onChange = {
+            coerceMinValue = it
+        })
 
-            dragFloat("CoerceMaxValue", coerceMaxValue, onChange = {
-                coerceMaxValue = it
-            })
+        dragFloat("CoerceMaxValue", coerceMaxValue, onChange = {
+            coerceMaxValue = it
+        })
     }
 
     companion object {

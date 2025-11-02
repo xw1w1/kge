@@ -54,4 +54,14 @@ class ShaderProgram(vertexSrc: String, fragSrc: String) {
         val loc = GL20.glGetUniformLocation(programId, name)
         GL20.glUniform3f(loc, vec.x, vec.y, vec.z)
     }
+
+    fun setUniform1f(name: String, value: Float) {
+        val loc = GL20.glGetUniformLocation(programId, name)
+        GL20.glUniform1f(loc, value)
+    }
+
+    fun setUniform1i(name: String, value: Int) {
+        val loc = GL20.glGetUniformLocation(programId, name)
+        GL20.glUniform1i(loc, value)
+    }
 }

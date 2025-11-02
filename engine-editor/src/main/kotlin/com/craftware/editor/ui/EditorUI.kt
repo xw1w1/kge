@@ -8,11 +8,7 @@ import com.craftware.editor.viewport.Viewport
 import com.craftware.editor.ui.impl.*
 import com.craftware.engine.ExceptionFactory
 import com.craftware.editor.Scene
-import com.craftware.editor.GameObject
-import com.craftware.editor.Primitives
-import com.craftware.editor.component.MeshRenderer
-import com.craftware.engine.imgui.menu
-import com.craftware.engine.imgui.menuItem
+import com.craftware.editor.standard.GameObject
 import imgui.ImGui
 import imgui.flag.ImGuiDockNodeFlags
 import imgui.flag.ImGuiStyleVar
@@ -39,7 +35,7 @@ class EditorUI(private val window: Window) {
         projectFolderPanel = ProjectFolderPanel()
 
         editorCameraObject = GameObject("Editor Camera").apply {
-            components += EditorCamera.EditorCameraTransform(viewport.camera)
+            components += EditorCamera.EditorCameraTransform(viewport.editorCamera)
         }
 
         initialized = true
@@ -86,7 +82,7 @@ class EditorUI(private val window: Window) {
 
     private fun renderMenuBar() {
         if (ImGui.beginMenuBar()) {
-            if (ImGui.beginMenu("File")) {
+            if (ImGui.beginMenu("File"))  {
                 if (ImGui.menuItem("New Scene")) {
                     EditorApp.getInstance().openScene(Scene("New Scene"))
                 }
@@ -102,57 +98,7 @@ class EditorUI(private val window: Window) {
                 ImGui.endMenu()
             }
 
-            if (ImGui.beginMenu("Create")) {
-                val scene = EditorApp.getInstance().sceneNullable
-                if (scene == null) {
-                    ExceptionFactory.createErrorWindow("Unable to access Create", "No active scene found")
-                    return
-                }
-                if (ImGui.menuItem("GameObject")) scene.createEmpty("GameObject")
-                if (ImGui.menuItem("Cube")) scene.createCube("Cube")
-                if (ImGui.menuItem("Plane")) scene.create("Plane", scene) {
-                    val renderer = MeshRenderer(Primitives.plane())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Sphere")) scene.create("Sphere", scene) {
-                    val renderer = MeshRenderer(Primitives.sphere())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Cylinder")) scene.create("Cylinder", scene) {
-                    val renderer = MeshRenderer(Primitives.cylinder())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Pyramid")) scene.create("Pyramid", scene) {
-                    val renderer = MeshRenderer(Primitives.pyramid())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Cone")) scene.create("Cone", scene) {
-                    val renderer = MeshRenderer(Primitives.cone())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Torus")) scene.create("Torus", scene) {
-                    val renderer = MeshRenderer(Primitives.torus())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Octagon")) scene.create("Octagon", scene) {
-                    val renderer = MeshRenderer(Primitives.octagon())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("Polygon")) scene.create("Polygon", scene) {
-                    val renderer = MeshRenderer(Primitives.polygon())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("DebugGrid")) scene.create("DebugGrid", scene) {
-                    val renderer = MeshRenderer(Primitives.d_Grid())
-                    it.addComponent(renderer)
-                }
-                if (ImGui.menuItem("DebugAxis")) scene.create("DebugAxis", scene) {
-                    val renderer = MeshRenderer(Primitives.d_Axis())
-                    it.addComponent(renderer)
-                }
-
-                ImGui.endMenu()
-            }
+            CreateMenu.render()
             ImGui.endMenuBar()
         }
     }
@@ -162,8 +108,10 @@ class EditorUI(private val window: Window) {
             selection.selectEditorCamera(editorCameraObject)
         }
         if (EditorApp.getInstance().getKeyboard().isDown(GLFW.GLFW_KEY_DELETE)) {
-            val selected = selection.selected
-            selected?.parent?.removeChild(selected)
+            selection.getSelectedObjects().forEach { selected ->
+                selected.parent?.removeChild(selected)
+                selection.clear()
+            }
         }
         if (EditorApp.getInstance().getKeyboard().isDown(GLFW.GLFW_KEY_ESCAPE)) {
             selection.clear()

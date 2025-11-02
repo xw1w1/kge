@@ -1,9 +1,10 @@
-package com.craftware.editor
+package com.craftware.editor.standard
 
+import com.craftware.editor.Node
 import com.craftware.editor.component.Component
 import com.craftware.editor.component.Transform
 
-class GameObject(name: String = "GameObject") : Node(name) {
+open class GameObject(name: String = "GameObject") : Node(name) {
     val transform: Transform
     val components = mutableListOf<Component>()
 
@@ -26,9 +27,8 @@ class GameObject(name: String = "GameObject") : Node(name) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> addComponent(component: Component): T {
+    fun addComponent(component: Component) {
         components += component
-        return component as T
     }
 
     private inline fun <reified T : Component> requireComponent(): T {
