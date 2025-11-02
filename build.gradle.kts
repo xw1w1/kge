@@ -11,4 +11,4 @@ allprojects {
 
 ext.set("lwjglVersion", "3.3.2")
 ext.set("jomlVersion", "1.10.5")
-ext.set("imguiVersion", "1.86.7")
+ext.set("imguiVersion", "1.90.0")

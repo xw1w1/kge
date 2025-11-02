@@ -22,6 +22,7 @@ class ImGuiContext(private val window: Window) {
 
     fun newFrame() {
         imGuiGlfw.newFrame()
+        imGuiGl3.newFrame()
         ImGui.newFrame()
     }
 
@@ -32,8 +33,8 @@ class ImGuiContext(private val window: Window) {
     }
 
     fun dispose() {
-        imGuiGl3.dispose()
-        imGuiGlfw.dispose()
+        imGuiGl3.shutdown()
+        imGuiGlfw.shutdown()
         ImGui.destroyContext()
     }
 }
