@@ -1,7 +1,7 @@
 package com.craftware.editor
 
 import com.craftware.editor.component.MeshRenderer
-import com.craftware.editor.component.Transform
+import com.craftware.editor.standard.GameObject
 
 class Scene(val name: String = "Untitled") : NodeParent() {
     fun createEmpty(name: String = "GameObject"): GameObject {
