@@ -2,16 +2,23 @@ package com.craftware.editor.ui
 
 import imgui.ImGui
 
-class UIPanelContextMenu(val id: String) {
+open class UIPanelContextMenu(val id: String) {
     private val actions = mutableListOf<() -> Unit>()
 
-    fun add(label: String, shortcut: String? = null, enabled: Boolean = true, onClick: () -> Unit) {
+    fun add(
+        label: String,
+        shortcut: String? = null,
+        selected: Boolean = false,
+        enabled: Boolean = true,
+        onClick: () -> Unit
+    ) {
         actions += {
-            if (ImGui.menuItem(label, shortcut ?: "", false, enabled)) {
+            if (ImGui.menuItem(label, shortcut ?: "", selected, enabled)) {
                 onClick()
             }
         }
     }
+
 
     fun submenu(label: String, content: UIPanelContextMenu.() -> Unit) {
         actions += {

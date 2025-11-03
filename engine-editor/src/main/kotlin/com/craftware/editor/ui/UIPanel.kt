@@ -1,7 +1,8 @@
 package com.craftware.editor.ui
 
+import com.craftware.editor.ui.impl.DefaultUIPanelContextMenu
+import com.craftware.editor.ui.impl.UIPanelSettings
 import imgui.ImGui
-import imgui.flag.ImGuiCond
 import imgui.flag.ImGuiWindowFlags
 import org.joml.Vector2f
 import kotlin.math.max
@@ -25,8 +26,11 @@ open class UIPanel(val id: String, private val title: String) {
     private var headerHeld = false
     private var attachedContextMenu: UIPanelContextMenu? = null
 
+    private var settings: UIPanelSettings = UIPanelSettings()
+
     init {
         UIPanelManager.register(this)
+        attachContextMenu(DefaultUIPanelContextMenu(settings))
     }
 
     fun attachContextMenu(menu: UIPanelContextMenu) {
@@ -34,7 +38,7 @@ open class UIPanel(val id: String, private val title: String) {
     }
 
     fun render(content: () -> Unit) {
-        ImGui.begin(title, ImGuiWindowFlags.None)
+        ImGui.begin(title, settings.toMask())
 
         val curX = ImGui.getWindowPosX()
         val curY = ImGui.getWindowPosY()

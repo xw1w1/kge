@@ -7,12 +7,12 @@ import com.craftware.editor.Selection
 import com.craftware.editor.component.MeshRenderer
 import com.craftware.editor.component.Transform
 import com.craftware.editor.standard.GameObject
+import com.craftware.editor.ui.UIPanel
 import com.craftware.engine.render.ShaderProgram
 import imgui.ImColor
 import imgui.ImGui
 import imgui.flag.ImGuiFocusedFlags
 import imgui.flag.ImGuiHoveredFlags
-import imgui.flag.ImGuiWindowFlags
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -24,7 +24,7 @@ import kotlin.math.min
 class Viewport(
     private val scene: Scene,
     private val selection: Selection
-) {
+) : UIPanel("Viewport", "Scene Viewport") {
     val editorCamera = EditorCamera()
     private val raycaster = Raycaster(editorCamera)
     private val gizmoManager = GizmoManager()
@@ -51,14 +51,7 @@ class Viewport(
         ViewportAxis.init()
     }
 
-    fun renderUI(delta: Float) {
-        ImGui.begin(
-            "Scene Viewport",
-            ImGuiWindowFlags.NoScrollbar or
-                    ImGuiWindowFlags.NoScrollWithMouse or
-                    ImGuiWindowFlags.NoMove
-        )
-
+    fun renderUI(delta: Float) = render {
         val width = ImGui.getContentRegionAvailX().toInt().coerceAtLeast(1)
         val height = ImGui.getContentRegionAvailY().toInt().coerceAtLeast(1)
 
@@ -95,7 +88,6 @@ class Viewport(
                 ImColor.rgba(255, 255, 0, 255)
             )
         }
-        ImGui.end()
     }
 
     private fun handleMouse(width: Int, height: Int, hasFocus: Boolean) {
