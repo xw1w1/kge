@@ -5,14 +5,15 @@ import com.craftware.editor.component.Component
 import com.craftware.editor.component.Transform
 
 open class GameObject(name: String = "GameObject") : Node(name) {
-    val transform: Transform
-    val components = mutableListOf<Component>()
+    val components = mutableListOf<Component>() // needs to be declared first
+
+    var transform: Transform = requireComponent<Transform>()
+        set(value) {
+            remove<Transform>()
+            addComponent(value)
+        }
 
     override val displayType: String = "GameObject"
-
-    init {
-        transform = requireComponent<Transform>()
-    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T : Component> getComponent(type: Class<T>): T? {
@@ -24,6 +25,9 @@ open class GameObject(name: String = "GameObject") : Node(name) {
         val comp = T::class.java.getDeclaredConstructor().newInstance()
         components += comp
         return comp
+    }
+    inline fun <reified T : Component> remove() {
+        components.removeIf { it is T }
     }
 
     @Suppress("UNCHECKED_CAST")
