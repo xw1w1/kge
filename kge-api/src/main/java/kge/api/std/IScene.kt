@@ -1,7 +1,8 @@
 package kge.api.std
 
 interface IScene {
-    var name: String
+    var id: String
+    var displayName: String?
 
     val root: INodeParent
     val activeCamera: IPerspectiveViewCamera?
