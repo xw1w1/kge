@@ -2,11 +2,11 @@ package com.craftware.editor.viewport
 
 import com.craftware.editor.EditorCamera
 import com.craftware.editor.ResourceLoader
-import com.craftware.editor.Selection
-import com.craftware.editor.standard.GameObject
 import com.craftware.editor.Scene
+import com.craftware.editor.Selection
 import com.craftware.editor.component.MeshRenderer
 import com.craftware.editor.component.Transform
+import com.craftware.editor.standard.GameObject
 import com.craftware.engine.render.ShaderProgram
 import imgui.ImColor
 import imgui.ImGui
@@ -42,6 +42,9 @@ class Viewport(
     private val dragStartThreshold = 5f
     private var potentialClick = false
 
+    private var frameRate: Double = 0.0
+    private var lastUpdateTicks: Int = 0
+
     init {
         gizmoManager.init()
         ViewportGrid.init()
@@ -69,8 +72,23 @@ class Viewport(
         renderScene(delta, width, height, hasFocus)
 
         ImGui.image(framebuffer.colorTex.toLong(), width.toFloat(), height.toFloat(), 0f, 1f, 1f, 0f)
+        val drawList = ImGui.getWindowDrawList()
+
+        if (lastUpdateTicks < 5) {
+            lastUpdateTicks++
+        } else {
+            lastUpdateTicks = 0
+            frameRate = (1f / delta).toDouble()
+        }
+
+        val pos = ImGui.getWindowPos()
+        drawList.addText(
+            pos.x + 10f, pos.y + 30f, // y -30 для заголовка
+            ImColor.rgba(255, 255, 255, 255),
+            "FPS: %.2f".format(frameRate)
+        )
+
         if (isSelecting) {
-            val drawList = ImGui.getWindowDrawList()
             drawList.addRect(
                 selectionStart.x, selectionStart.y,
                 selectionEnd.x, selectionEnd.y,
