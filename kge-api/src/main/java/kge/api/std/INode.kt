@@ -1,0 +1,14 @@
+package kge.api.std
+
+interface INode {
+    var name: String
+
+    var isActive: Boolean
+
+    var parent: INodeParent?
+
+    var displayType: String
+
+    val isActiveInHierarchy: Boolean
+        get() = isActive && (parent?.isActiveInHierarchy ?: true)
+}
