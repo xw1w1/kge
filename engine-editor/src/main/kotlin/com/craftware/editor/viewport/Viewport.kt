@@ -81,8 +81,7 @@ class Viewport(
     }
 
     private fun handleMouse(width: Int, height: Int, hasFocus: Boolean) {
-        if (!ImGui.isWindowHovered()) return
-        if (!hasFocus) return
+        if (!ImGui.isWindowHovered() || !hasFocus) return
 
         val mouse = ImGui.getMousePos()
         val win = ImGui.getWindowPos()
@@ -224,26 +223,46 @@ class Viewport(
         val maxY = max(selectionStart.y, selectionEnd.y)
 
         val selectedObjects = mutableListOf<GameObject>()
+        val viewProj = editorCamera.getViewProjection(width.toFloat() / height)
 
         for (obj in scene.getAllObjects()) {
             val transform = obj.get<Transform>() ?: continue
             val renderer = obj.get<MeshRenderer>() ?: continue
             if (!obj.isActive) continue
 
-            val center = Vector3f(
-                (renderer.mesh.boundsMin.x + renderer.mesh.boundsMax.x) / 2f,
-                (renderer.mesh.boundsMin.y + renderer.mesh.boundsMax.y) / 2f,
-                (renderer.mesh.boundsMin.z + renderer.mesh.boundsMax.z) / 2f
+            val boundsMin = renderer.mesh.boundsMin
+            val boundsMax = renderer.mesh.boundsMax
+
+            val corners = arrayOf(
+                Vector3f(boundsMin.x, boundsMin.y, boundsMin.z),
+                Vector3f(boundsMin.x, boundsMin.y, boundsMax.z),
+                Vector3f(boundsMin.x, boundsMax.y, boundsMin.z),
+                Vector3f(boundsMin.x, boundsMax.y, boundsMax.z),
+                Vector3f(boundsMax.x, boundsMin.y, boundsMin.z),
+                Vector3f(boundsMax.x, boundsMin.y, boundsMax.z),
+                Vector3f(boundsMax.x, boundsMax.y, boundsMin.z),
+                Vector3f(boundsMax.x, boundsMax.y, boundsMax.z)
             )
-            val worldPos = transform.getWorldMatrix(obj).transformPosition(center, Vector3f())
-            val clip = Vector4f(worldPos, 1f)
-            editorCamera.getViewProjection(width.toFloat() / height).transform(clip)
-            if (clip.w != 0f) clip.div(clip.w)
 
-            val screenX = (clip.x * 0.5f + 0.5f) * width
-            val screenY = (1f - (clip.y * 0.5f + 0.5f)) * height
+            val model = transform.getWorldMatrix(obj)
 
-            if (screenX in minX..maxX && screenY in minY..maxY) {
+            var intersects = false
+            for (corner in corners) {
+                val worldPos = model.transformPosition(Vector3f(corner), Vector3f())
+                val clip = Vector4f(worldPos, 1f)
+                viewProj.transform(clip)
+                if (clip.w != 0f) clip.div(clip.w)
+
+                val screenX = (clip.x * 0.5f + 0.5f) * width
+                val screenY = (1f - (clip.y * 0.5f + 0.5f)) * height
+
+                if (screenX in minX..maxX && screenY in minY..maxY) {
+                    intersects = true
+                    break
+                }
+            }
+
+            if (intersects) {
                 selectedObjects.add(obj)
             }
         }
@@ -254,4 +273,5 @@ class Viewport(
             selection.clear()
         }
     }
+
 }
