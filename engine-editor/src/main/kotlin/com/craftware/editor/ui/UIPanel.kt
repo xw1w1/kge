@@ -59,7 +59,6 @@ open class UIPanel(val id: String, private val title: String) {
             resizing = false
             resizeEdge = null
             onResizeEnd?.invoke()
-            UIPanelManager.clampToScreen(this)
         }
 
         prevPos.set(curPos)
@@ -76,56 +75,8 @@ open class UIPanel(val id: String, private val title: String) {
         attachedContextMenu?.render()
 
         ImGui.end()
-        handleSnap()
     }
 
-    private fun handleSnap() {
-        if (dragging) {
-            val snap = UIPanelManager.findSnapForMove(this)
-            if (snap != null) {
-                pos.x += snap.dx
-                pos.y += snap.dy
-                ImGui.setWindowPos(id, pos.x, pos.y)
-            }
-        }
-
-        if (resizing && resizeEdge != null) {
-            val snap = UIPanelManager.findSnapForResize(this, resizeEdge!!)
-            if (snap != null) {
-                when (resizeEdge) {
-                    ResizeEdge.RIGHT -> {
-                        size.x += snap.dx
-                        size.x = max(minSize.x, size.x)
-                        ImGui.setWindowSize(id, size.x, size.y)
-                        UIPanelManager.applyMutualResize(snap, resizeEdge!!)
-                    }
-                    ResizeEdge.LEFT -> {
-                        pos.x += snap.dx
-                        size.x -= snap.dx
-                        size.x = max(minSize.x, size.x)
-                        ImGui.setWindowPos(id, pos.x, pos.y)
-                        ImGui.setWindowSize(id, size.x, size.y)
-                        UIPanelManager.applyMutualResize(snap, resizeEdge!!)
-                    }
-                    ResizeEdge.BOTTOM -> {
-                        size.y += snap.dy
-                        size.y = max(minSize.y, size.y)
-                        ImGui.setWindowSize(id, size.x, size.y)
-                        UIPanelManager.applyMutualResize(snap, resizeEdge!!)
-                    }
-                    ResizeEdge.TOP -> {
-                        pos.y += snap.dy
-                        size.y -= snap.dy
-                        size.y = max(minSize.y, size.y)
-                        ImGui.setWindowPos(id, pos.x, pos.y)
-                        ImGui.setWindowSize(id, size.x, size.y)
-                        UIPanelManager.applyMutualResize(snap, resizeEdge!!)
-                    }
-                    else -> {}
-                }
-            }
-        }
-    }
 
     fun onHeaderRightClick(listener: () -> Unit) {
         headerRightClickListener = listener
