@@ -53,4 +53,8 @@ interface ICamera {
     fun getViewProjection(aspect: Float): Matrix4f {
         return Matrix4f(updateProjectionMatrix(aspect)).mul(updateViewMatrix())
     }
+
+    fun onActivate() {}
+
+    fun onDeactivate() {}
 }
