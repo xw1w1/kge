@@ -6,3 +6,4 @@ rootProject.name = "kotlin-game-engine"
 include("engine-core", "engine-editor")
 
 include("kge-api")
+include("kge-engine-editor")
