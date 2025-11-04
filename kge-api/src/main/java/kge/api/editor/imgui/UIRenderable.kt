@@ -1,5 +1,6 @@
 package kge.api.editor.imgui
 
 interface UIRenderable {
-    fun renderUI()
+    fun beginUI()
+    fun endUI()
 }
