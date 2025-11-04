@@ -1,5 +1,7 @@
 package kge.api.std
 
+import kge.api.render.IPerspectiveViewCamera
+
 interface IScene {
     var id: String
     var displayName: String?
