@@ -17,7 +17,6 @@ class GLFWMouse(private val windowHandle: Long) : IMouse {
     override var dy = 0.0
         private set
     override var scroll = 0.0
-        private set
 
     override var cursorDisabled: Boolean = false
         set(value) {

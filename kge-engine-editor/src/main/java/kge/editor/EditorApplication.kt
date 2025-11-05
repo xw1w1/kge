@@ -3,7 +3,10 @@ package kge.editor
 import kge.api.input.GLFWKeyboard
 import kge.api.input.GLFWMouse
 import kge.api.std.IProjectDescriptor
-import kge.api.std.IScene
+import kge.editor.project.EditorProjectManager
+import kge.editor.render.DefaultEditorRenderPipeline
+import kge.editor.render.EditorApplicationUI
+import kge.editor.render.viewport.EditorViewport
 import org.lwjgl.glfw.GLFW
 
 class EditorApplication {
@@ -11,30 +14,25 @@ class EditorApplication {
         1280, 720
     )
 
+    private val editorViewport: EditorViewport = EditorViewport()
+    private val editorApplicationUI: EditorApplicationUI = EditorApplicationUI()
+    private val editorRenderPipeline: DefaultEditorRenderPipeline = DefaultEditorRenderPipeline()
+    private val editorSelectionManager: EditorSelection = EditorSelection()
+    private val projectManager: EditorProjectManager = EditorProjectManager()
+
     private lateinit var mouse: GLFWMouse
     private lateinit var keyboard: GLFWKeyboard
 
     private var _currentProject: IProjectDescriptor? = null
-    private var _currentScene: IScene? = null
-
-    var scene: IScene
-        get() = _currentScene ?: error("No active scene loaded")
-        set(value) = openScene(value)
-
-    val sceneNullable: IScene?
-        get() = _currentScene
-
-    var project: IProjectDescriptor?
-        get() = _currentProject
-        set(value) { _currentProject = value }
+    private var _delta: Float = 0f
 
     fun run() {
         window.init()
         window.show()
+        editorApplicationUI.createImGuiContext(window)
 
         keyboard = GLFWKeyboard(window.handle)
         mouse = GLFWMouse(window.handle)
-        editorUI = EditorUI(window)
 
         _instance = this
 
@@ -45,13 +43,23 @@ class EditorApplication {
 
     fun openProject(project: IProjectDescriptor) {
         _currentProject?.onProjectUnload()
-
         _currentProject = project
 
         window.title = "KGE Editor — ${project.name}"
         _currentProject?.onProjectLoad()
+    }
 
-        editorUI.bindScene(scene)
+    fun getViewport() = editorViewport
+    fun getRenderPipeline() = editorRenderPipeline
+    fun getEditorSelection() = editorSelectionManager
+
+    fun getProjectManager() = projectManager
+
+    fun getMouse() = mouse
+    fun getKeyboard() = keyboard
+
+    fun setTitle(title: String) {
+        window.title = "KGE Editor — $title "
     }
 
     private fun mainLoop() {
@@ -59,26 +67,34 @@ class EditorApplication {
 
         while (!window.shouldClose()) {
             val currentTime = GLFW.glfwGetTime()
-            val delta = (currentTime - lastTime).toFloat()
+            _delta = (currentTime - lastTime).toFloat()
             lastTime = currentTime
 
             window.pollEvents()
             window.clear()
+            editorApplicationUI.newFrame()
 
-            update(delta)
-            render(delta)
+            update()
+            render(_delta)
 
             window.swapBuffers()
-            mouse.endFrame()
+            mouse.cleanup()
         }
     }
 
-    private fun update(delta: Float) {
-        editorUI.update(delta)
+    private fun render(delta: Float) {
+        editorApplicationUI.render(delta)
+    }
+
+    fun getDelta() = this._delta
+
+    private fun update() {
+        editorApplicationUI.getEditorDockspace().beginUI()
+
+        editorApplicationUI.getEditorDockspace().endUI()
     }
 
     private fun dispose() {
-        editorUI.dispose()
         window.dispose()
     }
 

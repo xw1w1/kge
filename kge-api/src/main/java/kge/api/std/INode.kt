@@ -7,7 +7,7 @@ interface INode {
 
     var parent: INodeParent?
 
-    var displayType: String
+    val displayType: String
 
     val isActiveInHierarchy: Boolean
         get() = isActive && (parent?.isActiveInHierarchy ?: true)

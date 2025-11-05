@@ -4,7 +4,7 @@ import imgui.ImGui
 import imgui.flag.ImGuiWindowFlags
 import kge.api.editor.imgui.UIRenderable
 
-class EditorUIPanel(var title: String) : UIRenderable {
+open class EditorUIPanel(var title: String) : UIRenderable {
     var flags: Int = ImGuiWindowFlags.None
     var isResizable: Boolean = false
     var isPinned: Boolean = false

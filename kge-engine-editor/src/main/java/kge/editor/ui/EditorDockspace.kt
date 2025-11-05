@@ -2,8 +2,9 @@ package kge.editor.ui
 
 import imgui.ImGui
 import imgui.flag.ImGuiDockNodeFlags
+import kge.api.editor.imgui.UIRenderable
 
-class EditorDockspace {
+class EditorDockspace : UIRenderable {
     private val dockspaceId: String = "EditorDockspace"
     private var dockspaceFlags = ImGuiDockNodeFlags.None
 
@@ -11,7 +12,7 @@ class EditorDockspace {
         dockspaceFlags = flags
     }
 
-    fun begin() {
+    override fun beginUI() {
         val io = ImGui.getIO()
         io.configFlags = io.configFlags or imgui.flag.ImGuiConfigFlags.DockingEnable
 
@@ -36,7 +37,7 @@ class EditorDockspace {
         ImGui.dockSpace(dockId, 0f, 0f, dockspaceFlags)
     }
 
-    fun end() {
+    override fun endUI() {
         ImGui.end()
     }
 }

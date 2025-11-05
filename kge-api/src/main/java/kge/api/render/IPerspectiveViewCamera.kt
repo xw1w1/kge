@@ -33,7 +33,7 @@ import org.joml.Vector2f
  * This interface can be used both within the editor and in the final runtime,
  * providing a consistent abstraction over camera data and transformation logic.
  */
-interface IPerspectiveViewCamera {
+interface IPerspectiveViewCamera : ICamera {
     private val clipPlanesRange: Vector2f
         get() = Vector2f(0.001f, 1000f)
 
@@ -43,5 +43,5 @@ interface IPerspectiveViewCamera {
     var zFar get() = clipPlanesRange.y()
         set(value) { this.clipPlanesRange.set(zNear, value) }
 
-    fun updateProjectionMatrix(): Matrix4f
+    fun updateProjectionMatrix(aspect: Float): Matrix4f
 }

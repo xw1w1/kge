@@ -1,6 +1,4 @@
-package com.craftware.editor
-
-import com.craftware.engine.render.GLMesh
+package kge.editor
 
 object Primitives {
     private val loadedMeshes = mutableMapOf<String, GLMesh>()
