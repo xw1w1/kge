@@ -1,7 +1,6 @@
 package kge.editor.render.viewport
 
 import kge.api.editor.EditorSelectionGizmoAxis
-import kge.api.std.IRenderable
 import kge.editor.GameObject
 import kge.editor.ResourceLoader
 import org.joml.Matrix4f
@@ -26,8 +25,8 @@ class ViewportGizmoManager {
     fun init() {
         gizmoRenderer.init(
             ResourceLoader.loadShader(
-                "standard/shaders/gizmo.vert",
-                "standard/shaders/gizmo.frag"
+                "std/shaders/gizmo.vert",
+                "std/shaders/gizmo.frag"
             )
         )
     }

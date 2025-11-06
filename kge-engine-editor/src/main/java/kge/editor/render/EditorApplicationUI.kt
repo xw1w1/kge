@@ -8,6 +8,7 @@ import kge.api.editor.imgui.IRenderCallback
 import kge.api.std.IRenderable
 import kge.editor.EditorWindow
 import kge.editor.ui.EditorDockspace
+import kge.editor.ui.EditorMenuBar
 import kge.editor.ui.EditorUIPanel
 
 class EditorApplicationUI : IRenderable {
@@ -15,12 +16,15 @@ class EditorApplicationUI : IRenderable {
     private val imGuiGlfw = ImGuiImplGlfw()
     private val panels: MutableList<EditorUIPanel> = mutableListOf()
 
+    private val editorMenuBar = EditorMenuBar()
     private val editorDockspace = EditorDockspace()
 
     fun createImGuiContext(window: EditorWindow) {
         ImGui.createContext()
         val io = ImGui.getIO()
         io.configFlags = io.configFlags or ImGuiConfigFlags.NavEnableKeyboard
+        io.configFlags = io.configFlags or ImGuiConfigFlags.DockingEnable
+        // maybe in future: io.configFlags = io.configFlags or ImGuiConfigFlags.ViewportsEnable
 
         imGuiGlfw.init(window.getHandle(), true)
         imGuiGl3.init("#version 150")
@@ -40,10 +44,13 @@ class EditorApplicationUI : IRenderable {
         return editorDockspace
     }
 
+    fun getEditorMenuBar(): EditorMenuBar {
+        return editorMenuBar
+    }
+
     override fun render(delta: Float) {
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
-        pushRenderCallback(IRenderCallback.DefaultRenderCallbackImpl.SUCCESS)
     }
 
     override fun pushRenderCallback(cb: IRenderCallback) { /** no logging huh? **/ }

@@ -17,7 +17,7 @@ class ViewportAxisRenderer {
             "std/shaders/axis.vert",
             "std/shaders/axis.frag"
         )
-        mesh = ResourceLoader.loadMesh("standard/meshes/AXIS.msh")
+        mesh = ResourceLoader.loadMesh("std/meshes/AXIS.msh")
         initialized = true
     }
 

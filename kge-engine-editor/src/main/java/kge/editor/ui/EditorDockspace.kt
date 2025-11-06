@@ -2,39 +2,32 @@ package kge.editor.ui
 
 import imgui.ImGui
 import imgui.flag.ImGuiDockNodeFlags
+import imgui.flag.ImGuiWindowFlags
 import kge.api.editor.imgui.UIRenderable
 
 class EditorDockspace : UIRenderable {
-    private val dockspaceId: String = "EditorDockspace"
-    private var dockspaceFlags = ImGuiDockNodeFlags.None
-
-    fun setFlags(flags: Int) {
-        dockspaceFlags = flags
-    }
-
     override fun beginUI() {
-        val io = ImGui.getIO()
-        io.configFlags = io.configFlags or imgui.flag.ImGuiConfigFlags.DockingEnable
-
         val viewport = ImGui.getMainViewport()
         ImGui.setNextWindowPos(viewport.posX, viewport.posY)
         ImGui.setNextWindowSize(viewport.sizeX, viewport.sizeY)
         ImGui.setNextWindowViewport(viewport.id)
 
-        val windowFlags = imgui.flag.ImGuiWindowFlags.NoTitleBar or
-                imgui.flag.ImGuiWindowFlags.NoCollapse or
-                imgui.flag.ImGuiWindowFlags.NoResize or
-                imgui.flag.ImGuiWindowFlags.NoMove or
-                imgui.flag.ImGuiWindowFlags.NoBringToFrontOnFocus or
-                imgui.flag.ImGuiWindowFlags.NoNavFocus
+        val windowFlags = ImGuiWindowFlags.NoDocking or
+                ImGuiWindowFlags.NoTitleBar or
+                ImGuiWindowFlags.NoCollapse or
+                ImGuiWindowFlags.NoResize or
+                ImGuiWindowFlags.NoMove or
+                ImGuiWindowFlags.NoBringToFrontOnFocus or
+                ImGuiWindowFlags.NoNavFocus or
+                ImGuiWindowFlags.MenuBar
 
         ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowRounding, 0f)
         ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowBorderSize, 0f)
-        ImGui.begin(dockspaceId, windowFlags)
+        ImGui.begin("EditorDockspace", windowFlags)
         ImGui.popStyleVar(2)
 
-        val dockId = ImGui.getID(dockspaceId)
-        ImGui.dockSpace(dockId, 0f, 0f, dockspaceFlags)
+        val dockId = ImGui.getID("EditorDockspace")
+        ImGui.dockSpace(dockId, 0f, 0f, ImGuiDockNodeFlags.PassthruCentralNode)
     }
 
     override fun endUI() {

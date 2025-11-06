@@ -21,6 +21,15 @@ class EditorProject(
 
     override fun onProjectLoad() {
         _currentScene?.onLoad()
+
+        if (_currentScene == null) {
+            val scene = EditorSceneImpl("untitled", "Untitled Scene")
+            scene.onLoad()
+
+            _loadedKnownScenes.add(scene)
+
+            _currentScene = scene
+        }
     }
 
     override fun onProjectUnload() { }

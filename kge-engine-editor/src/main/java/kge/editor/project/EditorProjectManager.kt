@@ -15,15 +15,15 @@ class EditorProjectManager {
     }
 
     fun openProject(path: String): EditorProject {
-        val folder = File(path)
-        if (!folder.exists() || !folder.isDirectory) {
-            throw IllegalArgumentException("Path $path is not a valid project folder.")
-        }
-
-        val meta = folder.resolve("project.kge")
+        //val folder = File(path)
+        //if (!folder.exists() || !folder.isDirectory) {
+        //    throw IllegalArgumentException("Path $path is not a valid project folder.")
+        //}
+        //
+        //val meta = folder.resolve("project.kge")
         // TODO: parsing
-        EditorApplication.getInstance().setTitle("Untitled")
-        val project = EditorProject("Untitled", "1.0",
+        EditorApplication.getInstance().setTitle(path)
+        val project = EditorProject(path, "1.0",
             mutableMapOf(
                 "assetsRoot" to "none",
                 "engineVersion" to "none",

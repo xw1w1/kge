@@ -1,7 +1,7 @@
 package kge.editor
 
-import kge.api.input.GLFWKeyboard
-import kge.api.input.GLFWMouse
+import kge.editor.input.GLFWKeyboard
+import kge.editor.input.GLFWMouse
 import kge.api.render.IPerspectiveViewCamera
 import org.joml.Math.toRadians
 import org.joml.Matrix4f
@@ -19,7 +19,7 @@ class EditorCamera : IPerspectiveViewCamera {
     var moveSpeedBase = 8f
     var sensitivity = 0.0035f
     var zoomSpeed = 2.0f
-    private var isRotating = false
+    var isRotating = false
     private var fieldOfView: Float = 60f
 
     private val forward = Vector3f()
@@ -46,8 +46,6 @@ class EditorCamera : IPerspectiveViewCamera {
             val qx = Quaternionf().rotateX(eulerX)
             val qy = Quaternionf().rotateY(eulerY)
             rotation.mul(qy).mul(qx).normalize()
-
-            mouse.cleanup()
         }
 
         forward.set(0f, 0f, -1f).rotate(rotation)
@@ -71,7 +69,6 @@ class EditorCamera : IPerspectiveViewCamera {
         if (mouse.scroll != 0.0) {
             val zoom = (mouse.scroll * zoomSpeed).toFloat()
             position.add(Vector3f(forward).mul(zoom))
-            mouse.scroll = 0.0
         }
     }
 

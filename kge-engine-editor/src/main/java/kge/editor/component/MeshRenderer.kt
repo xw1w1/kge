@@ -2,10 +2,12 @@ package kge.editor.component
 
 import imgui.ImGui
 import kge.api.std.IGLMesh
+import kge.api.std.INode
 
 class MeshRenderer(
-    var mesh: IGLMesh
-) : Component("Mesh Renderer") {
+    var mesh: IGLMesh,
+    override var owningNode: INode
+) : Component(owningNode, "Mesh Renderer") {
     var renderEnabled: Boolean = true
 
     override fun onInspectorUI() {

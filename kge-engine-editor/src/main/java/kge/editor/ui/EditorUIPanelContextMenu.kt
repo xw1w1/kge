@@ -9,12 +9,12 @@ open class EditorUIPanelContextMenu(val id: String) : UIRenderable {
     fun addRow(
         label: String,
         shortcut: String? = null,
-        selected: Boolean = false,
-        enabled: Boolean = true,
+        selected: () -> Boolean,
+        enabled: Boolean,
         onClick: () -> Unit
     ) {
         renderActions += {
-            if (ImGui.menuItem(label, shortcut ?: "", selected, enabled)) {
+            if (ImGui.menuItem(label, shortcut ?: "", selected(), enabled)) {
                 onClick()
             }
         }
@@ -33,14 +33,12 @@ open class EditorUIPanelContextMenu(val id: String) : UIRenderable {
         panel: EditorUIPanel
     ) : EditorUIPanelContextMenu("DefaultEditorUIPanelContextMenu") {
         init {
-            val doNotResize = panel.isResizable
-            val pinToDockspace = panel.isPinned
-            addRow("Lock resize", selected = doNotResize) {
-                panel.isResizable = !doNotResize
+            addRow("Resizable", "", selected = { panel.isResizable }, true) {
+                panel.isResizable = !panel.isResizable
             }
 
-            addRow("Pin to Dockspace", selected = pinToDockspace) {
-                panel.isPinned = !pinToDockspace
+            addRow("Pin to Dockspace", "", selected = { panel.isPinned }, true) {
+                panel.isPinned = !panel.isPinned
             }
         }
     }

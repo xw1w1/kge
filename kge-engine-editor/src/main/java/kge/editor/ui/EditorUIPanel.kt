@@ -5,8 +5,9 @@ import imgui.flag.ImGuiWindowFlags
 import kge.api.editor.imgui.UIRenderable
 
 open class EditorUIPanel(var title: String) : UIRenderable {
-    var flags: Int = ImGuiWindowFlags.None
-    var isResizable: Boolean = false
+    var flags: Int = 0
+        get() = field or windowFlagsMask()
+    var isResizable: Boolean = true
     var isPinned: Boolean = false
 
     var content: () -> Unit = {}
@@ -17,13 +18,12 @@ open class EditorUIPanel(var title: String) : UIRenderable {
     private var uiPanelContextMenu: EditorUIPanelContextMenu = EditorUIPanelContextMenu.Default(this)
 
     override fun beginUI() {
-        val windowFlags = flags or windowFlagsMask()
+        ImGui.begin(title, flags)
 
-        ImGui.begin(title, windowFlags)
-
+        //handleWindowDragging()
         content()
 
-        checkWindowHeaderContext()
+        getIsWindowHeaderClicked()
         uiPanelContextMenu.beginUI()
         uiPanelContextMenu.endUI()
     }
@@ -32,14 +32,7 @@ open class EditorUIPanel(var title: String) : UIRenderable {
         ImGui.end()
     }
 
-    private fun windowFlagsMask(): Int {
-        var flags = 0
-        if (isPinned) flags = flags or ImGuiWindowFlags.NoMove
-        if (!isResizable) flags = flags or ImGuiWindowFlags.NoResize
-        return flags
-    }
-
-    private fun checkWindowHeaderContext() {
+    fun getMouseInHeader(): Boolean {
         val mouseX = ImGui.getMousePosX()
         val mouseY = ImGui.getMousePosY()
         val winX = ImGui.getWindowPosX()
@@ -47,12 +40,21 @@ open class EditorUIPanel(var title: String) : UIRenderable {
         val winW = ImGui.getWindowWidth()
         val headerH = ImGui.getFrameHeight()
 
-        val inHeader = mouseX in winX..(winX + winW) && mouseY in winY..(winY + headerH)
+        return mouseX in winX..(winX + winW) && mouseY in winY..(winY + headerH)
+    }
 
-        if (inHeader) {
+    private fun getIsWindowHeaderClicked() {
+        if (getMouseInHeader()) {
             if (ImGui.isMouseClicked(1)) {
                 onWindowHeaderRightClick()
             }
         }
+    }
+
+    private fun windowFlagsMask(): Int {
+        var flags = 0
+        if (isPinned) flags = flags or ImGuiWindowFlags.NoMove
+        if (!isResizable) flags = flags or ImGuiWindowFlags.NoResize
+        return flags
     }
 }

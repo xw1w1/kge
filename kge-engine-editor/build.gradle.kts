@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    application
     kotlin("jvm") version "2.2.20"
 }
 
@@ -16,10 +17,10 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 }
 
-tasks.test {
-    useJUnitPlatform()
+application {
+    mainClass.set("kge.editor.EditorBootstrapKt")
 }
 
-kotlin {
-    jvmToolchain(24)
-}
+java { toolchain.languageVersion.set(JavaLanguageVersion.of(17)) }
+
+kotlin { jvmToolchain(17) }

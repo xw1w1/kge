@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL11
 import kotlin.IntArray
 
 class EditorWindow(private val width: Int, private val height: Int) : IGLWindow {
-    override var handle: Long = 0L
+    override var windowHandle: Long = 0L
     override var flags: KGEWindowFlags = KGEWindowFlags.None
     override var title: String? = "KGE Editor"
 
@@ -21,10 +21,10 @@ class EditorWindow(private val width: Int, private val height: Int) : IGLWindow 
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE)
 
-        handle = GLFW.glfwCreateWindow(width, height, title ?: "KGE Editor", 0, 0)
-        if (handle == 0L) throw RuntimeException("Failed to create GLFW window")
+        windowHandle = GLFW.glfwCreateWindow(width, height, title ?: "KGE Editor", 0, 0)
+        if (windowHandle == 0L) throw RuntimeException("Failed to create GLFW window")
 
-        GLFW.glfwMakeContextCurrent(handle)
+        GLFW.glfwMakeContextCurrent(windowHandle)
         GLFW.glfwSwapInterval(1)
 
         GL.createCapabilities()
@@ -35,26 +35,26 @@ class EditorWindow(private val width: Int, private val height: Int) : IGLWindow 
     }
 
     fun show() {
-        if (handle == 0L) throw IllegalStateException("GLFW is not initialized!")
+        if (windowHandle == 0L) throw IllegalStateException("GLFW is not initialized!")
 
-        GLFW.glfwShowWindow(handle)
+        GLFW.glfwShowWindow(windowHandle)
     }
 
-    fun shouldClose(): Boolean = GLFW.glfwWindowShouldClose(handle)
+    fun shouldClose(): Boolean = GLFW.glfwWindowShouldClose(windowHandle)
     fun pollEvents() = GLFW.glfwPollEvents()
-    fun swapBuffers() = GLFW.glfwSwapBuffers(handle)
+    fun swapBuffers() = GLFW.glfwSwapBuffers(windowHandle)
 
-    fun getHandle(): Long = handle
+    fun getHandle(): Long = windowHandle
 
     override fun getSize(): Vector2i {
         val w = IntArray(1)
         val h = IntArray(1)
-        GLFW.glfwGetWindowSize(handle, w, h)
+        GLFW.glfwGetWindowSize(windowHandle, w, h)
         return Vector2i(w[0], h[0])
     }
 
     override fun dispose() {
-        GLFW.glfwDestroyWindow(handle)
+        GLFW.glfwDestroyWindow(windowHandle)
         GLFW.glfwTerminate()
     }
 

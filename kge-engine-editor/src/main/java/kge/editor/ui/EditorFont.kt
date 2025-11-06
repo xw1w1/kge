@@ -10,9 +10,13 @@ object EditorFont {
     lateinit var italic: ImFont
 
     fun load(io: ImGuiIO) {
-        regular = io.fonts.addFontFromFileTTF("std/fonts/JetBrainsMono-Regular.ttf", 16f)
-        medium = io.fonts.addFontFromFileTTF("std/fonts/JetBrainsMono-Medium.ttf", 18f)
-        italic = io.fonts.addFontFromFileTTF("std/fonts/JetBrainsMono-Italic.ttf", 16f)
-        bold = io.fonts.addFontFromFileTTF("std/fonts/JetBrainsMono-Bold.ttf", 20f)
+        regular = io.fonts.addFontFromMemoryTTF(assetBytes("std/fonts/JetBrainsMono-Regular.ttf"), 16f)
+        medium = io.fonts.addFontFromMemoryTTF(assetBytes("std/fonts/JetBrainsMono-Medium.ttf"), 18f)
+        italic = io.fonts.addFontFromMemoryTTF(assetBytes("std/fonts/JetBrainsMono-Italic.ttf"), 16f)
+        bold = io.fonts.addFontFromMemoryTTF(assetBytes("std/fonts/JetBrainsMono-Bold.ttf"), 20f)
+    }
+
+    fun assetBytes(assetPath: String): ByteArray {
+        return this.javaClass.classLoader.getResourceAsStream(assetPath).readAllBytes()
     }
 }

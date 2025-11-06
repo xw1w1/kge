@@ -1,12 +1,14 @@
 package kge.editor
 
-import kge.api.input.GLFWKeyboard
-import kge.api.input.GLFWMouse
-import kge.api.std.IProjectDescriptor
+import imgui.ImGui
+import kge.editor.input.GLFWInputSystem
+import kge.editor.input.GLFWKeyboard
+import kge.editor.input.GLFWMouse
 import kge.editor.project.EditorProjectManager
 import kge.editor.render.DefaultEditorRenderPipeline
 import kge.editor.render.EditorApplicationUI
 import kge.editor.render.viewport.EditorViewport
+import kge.editor.ui.EditorFont
 import org.lwjgl.glfw.GLFW
 
 class EditorApplication {
@@ -20,33 +22,31 @@ class EditorApplication {
     private val editorSelectionManager: EditorSelection = EditorSelection()
     private val projectManager: EditorProjectManager = EditorProjectManager()
 
+    private lateinit var inputSystem: GLFWInputSystem
     private lateinit var mouse: GLFWMouse
     private lateinit var keyboard: GLFWKeyboard
-
-    private var _currentProject: IProjectDescriptor? = null
     private var _delta: Float = 0f
 
     fun run() {
         window.init()
         window.show()
-        editorApplicationUI.createImGuiContext(window)
-
-        keyboard = GLFWKeyboard(window.handle)
-        mouse = GLFWMouse(window.handle)
-
+        inputSystem = GLFWInputSystem()
         _instance = this
+
+        inputSystem.register()
+
+        keyboard = GLFWKeyboard(inputSystem)
+        mouse = GLFWMouse(inputSystem)
+
+        editorApplicationUI.createImGuiContext(window)
+        EditorFont.load(ImGui.getIO())
+
+        editorApplicationUI.attach(editorViewport)
+        editorViewport.init()
 
         mainLoop()
 
         dispose()
-    }
-
-    fun openProject(project: IProjectDescriptor) {
-        _currentProject?.onProjectUnload()
-        _currentProject = project
-
-        window.title = "KGE Editor — ${project.name}"
-        _currentProject?.onProjectLoad()
     }
 
     fun getViewport() = editorViewport
@@ -58,9 +58,13 @@ class EditorApplication {
     fun getMouse() = mouse
     fun getKeyboard() = keyboard
 
+    fun getInputSystem() = inputSystem
+
     fun setTitle(title: String) {
         window.title = "KGE Editor — $title "
     }
+
+    fun getWindowHandle() = window.windowHandle
 
     private fun mainLoop() {
         var lastTime = GLFW.glfwGetTime()
@@ -72,26 +76,20 @@ class EditorApplication {
 
             window.pollEvents()
             window.clear()
+
             editorApplicationUI.newFrame()
 
-            update()
-            render(_delta)
+            val dockspace = editorApplicationUI.getEditorDockspace()
+            dockspace.beginUI()
+            editorApplicationUI.getEditorMenuBar().render(_delta)
+            editorViewport.render(_delta)
+            dockspace.endUI()
+
+            editorApplicationUI.render(_delta)
 
             window.swapBuffers()
-            mouse.cleanup()
+            inputSystem.cleanup()
         }
-    }
-
-    private fun render(delta: Float) {
-        editorApplicationUI.render(delta)
-    }
-
-    fun getDelta() = this._delta
-
-    private fun update() {
-        editorApplicationUI.getEditorDockspace().beginUI()
-
-        editorApplicationUI.getEditorDockspace().endUI()
     }
 
     private fun dispose() {

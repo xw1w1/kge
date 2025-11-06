@@ -1,12 +1,12 @@
 package kge.editor.component
 
 import kge.api.editor.IEditorComponent
-import kge.api.std.INodeParent
+import kge.api.std.INode
 
 open class Component(
+    override var owningNode: INode,
     override val displayTypeName: String
 ) : IEditorComponent {
-    open var owner: INodeParent? = null
 
     open var enabled: Boolean = true
 
