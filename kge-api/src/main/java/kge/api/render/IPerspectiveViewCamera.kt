@@ -42,6 +42,4 @@ interface IPerspectiveViewCamera : ICamera {
 
     var zFar get() = clipPlanesRange.y()
         set(value) { this.clipPlanesRange.set(zNear, value) }
-
-    fun updateProjectionMatrix(aspect: Float): Matrix4f
 }

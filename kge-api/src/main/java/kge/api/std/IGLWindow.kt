@@ -3,7 +3,7 @@ package kge.api.std
 import org.joml.Vector2i
 
 interface IGLWindow {
-    var handle: Long
+    var windowHandle: Long
     var flags: KGEWindowFlags
 
     var title: String?

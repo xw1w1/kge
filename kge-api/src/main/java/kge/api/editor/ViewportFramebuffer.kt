@@ -10,8 +10,8 @@ class ViewportFramebuffer {
         private set
     private var depthRbo: Int = 0
 
-    private var frameWidth: Int = 0
-    private var frameHeight: Int = 0
+    var frameWidth: Int = 0
+    var frameHeight: Int = 0
 
     fun ensureFramebuffer(width: Int, height: Int, internalFormat: Int = GL11.GL_RGB) {
         if (buffer != 0 && frameWidth == width && frameHeight == height) return

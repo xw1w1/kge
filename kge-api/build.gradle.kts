@@ -28,10 +28,6 @@ dependencies {
     api("io.github.spair:imgui-java-natives-windows:$imguiVersion")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
+java { toolchain.languageVersion.set(JavaLanguageVersion.of(17)) }
 
-kotlin {
-    jvmToolchain(24)
-}
+kotlin { jvmToolchain(17) }

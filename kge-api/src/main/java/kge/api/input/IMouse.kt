@@ -1,6 +1,6 @@
 package kge.api.input
 
-interface IMouse : IInputDevice {
+interface IMouse {
     val x: Double
     val y: Double
     val dx: Double
