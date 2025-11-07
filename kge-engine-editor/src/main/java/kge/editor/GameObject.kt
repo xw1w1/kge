@@ -8,9 +8,17 @@ import kge.editor.component.TransformComponent
 open class GameObject(
     override var name: String = "GameObject"
 ) : INodeParent {
+    private val _children = mutableListOf<INode>()
+    private val _transform: EditorTransformImpl = EditorTransformImpl()
+    val components = mutableListOf<IEditorComponent>()
+
+    init {
+        val transform = TransformComponent(_transform)
+        this.addComponent(transform)
+    }
+
     override var parent: INodeParent? = null
 
-    private val _children = mutableListOf<INode>()
     override val children: List<INode>
         get() = _children.toList()
 
@@ -18,9 +26,7 @@ open class GameObject(
 
     override val displayType: String = "GameObject"
 
-    val components = mutableListOf<IEditorComponent>()
-
-    var transform: EditorTransformImpl = requireComponent<TransformComponent>().transform
+    var transform: EditorTransformImpl = requireComponent<TransformComponent>().transform!!
 
     override fun addChild(child: INode) {
         require(child !== this) { "Cannot add self as a child." }
@@ -70,10 +76,9 @@ open class GameObject(
 
     inline fun <reified T : IEditorComponent> get(): T? = getComponent(T::class.java)
 
-    inline fun <reified T : IEditorComponent> addComponent(): T {
-        val comp = T::class.java.getDeclaredConstructor().newInstance()
+    inline fun <reified T : IEditorComponent> addComponent(vararg args: Any? = arrayOf(this)): T {
+        val comp = T::class.java.getDeclaredConstructor().newInstance(args)
         components += comp
-        comp.owningNode = this
         return comp
     }
 
@@ -83,7 +88,6 @@ open class GameObject(
 
     fun addComponent(component: IEditorComponent) {
         components += component
-        component.owningNode = this
     }
 
     private inline fun <reified T : IEditorComponent> requireComponent(): T {
