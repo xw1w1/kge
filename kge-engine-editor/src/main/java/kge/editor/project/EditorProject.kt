@@ -2,6 +2,7 @@ package kge.editor.project
 
 import kge.api.std.IProjectDescriptor
 import kge.api.std.IScene
+import kge.editor.EditorApplication
 
 class EditorProject(
     override var name: String,
