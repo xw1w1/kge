@@ -17,11 +17,11 @@ class GLFWMouse(private val input: GLFWInputSystem) : IMouse {
             input.cleanup()
         }
 
-    override val x: Double = input.getMouseX()
-    override val y: Double = input.getMouseY()
-    override val dx: Double = input.getMouseDX()
-    override val dy: Double = input.getMouseDY()
-    override val scroll: Double = input.getMouseScroll()
+    override val x: Double get() = input.getMouseX()
+    override val y: Double get() = input.getMouseY()
+    override val dx: Double get() = input.getMouseDX()
+    override val dy: Double get() = input.getMouseDY()
+    override val scroll: Double get() = input.getMouseScroll()
 
     override fun isDown(button: Int): Boolean =
         button in input.getMouseButtons().indices && input.getMouseButtons()[button]
