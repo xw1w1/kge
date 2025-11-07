@@ -30,6 +30,8 @@ class EditorProject(
 
             _currentScene = scene
         }
+
+        EditorApplication.getInstance().setTitle(this.name)
     }
 
     override fun onProjectUnload() { }
