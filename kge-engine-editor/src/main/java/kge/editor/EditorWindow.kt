@@ -13,6 +13,10 @@ class EditorWindow(private val width: Int, private val height: Int) : IGLWindow 
     override var windowHandle: Long = 0L
     override var flags: KGEWindowFlags = KGEWindowFlags.None
     override var title: String? = "KGE Editor"
+        set(value) {
+            field = value
+            GLFW.glfwSetWindowTitle(windowHandle, value ?: "KGE")
+        }
 
     override fun init() {
         GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
