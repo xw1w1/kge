@@ -20,10 +20,8 @@ class GLFWInputSystem : IInputSystem {
 
         // mouse
         GLFW.glfwSetCursorPosCallback(handle) { _, cx, cy ->
-            mousePos[MOUSE_DX] = (cx - mousePos[MOUSE_X])
-            mousePos[MOUSE_DY] = (cy - mousePos[MOUSE_Y])
-            mousePos[MOUSE_X * 2] = mousePos[MOUSE_X]
-            mousePos[MOUSE_Y * 2] = mousePos[MOUSE_Y]
+            mousePos[MOUSE_DX] = cx - mousePos[MOUSE_X]
+            mousePos[MOUSE_DY] = cy - mousePos[MOUSE_Y]
             mousePos[MOUSE_X] = cx
             mousePos[MOUSE_Y] = cy
         }

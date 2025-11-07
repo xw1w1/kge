@@ -14,7 +14,6 @@ class GLFWMouse(private val input: GLFWInputSystem) : IMouse {
             GLFW.glfwSetInputMode(input.handle, GLFW.GLFW_CURSOR,
                 if (value) GLFW.GLFW_CURSOR_DISABLED else GLFW.GLFW_CURSOR_NORMAL)
             field = value
-            input.cleanup()
         }
 
     override val x: Double get() = input.getMouseX()
