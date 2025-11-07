@@ -1,10 +1,8 @@
 package kge.editor.component
 
 import kge.api.editor.IEditorComponent
-import kge.api.std.INode
 
 open class Component(
-    override var owningNode: INode,
     override val displayTypeName: String
 ) : IEditorComponent {
 
