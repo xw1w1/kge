@@ -99,6 +99,6 @@ class GLFWInputSystem : IInputSystem {
     override fun cleanup() {
         mousePos[MOUSE_DX] = 0.0
         mousePos[MOUSE_DY] = 0.0
-        mousePos[MOUSE_X] = 0.0
+        mousePos[MOUSE_WHEEL] = 0.0
     }
 }
