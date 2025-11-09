@@ -1,15 +1,14 @@
 package kge.editor
 
 import kge.api.editor.IEditorComponent
-import kge.api.std.INodeParent
-import kge.api.std.INode
+import kge.api.std.Node
 import kge.editor.component.TransformComponent
 
 open class GameObject(
     override var name: String = "GameObject"
-) : INodeParent {
-    private val _children = mutableListOf<INode>()
+) : Node(name) {
     private val _transform: EditorTransformImpl = EditorTransformImpl()
+
     val components = mutableListOf<IEditorComponent>()
 
     init {
@@ -17,57 +16,9 @@ open class GameObject(
         this.addComponent(transform)
     }
 
-    override var parent: INodeParent? = null
-
-    override val children: List<INode>
-        get() = _children.toList()
-
-    override var isActive: Boolean = true
-
     override val displayType: String = "GameObject"
 
     var transform: EditorTransformImpl = requireComponent<TransformComponent>().transform!!
-
-    override fun addChild(child: INode) {
-        require(child !== this) { "Cannot add self as a child." }
-        if (child.parent === this) return
-        (child.parent as? GameObject)?.removeChild(child)
-        child.parent = this
-        _children += child
-    }
-
-    override fun removeChild(child: INode) {
-        if (_children.remove(child)) {
-            child.parent = null
-        }
-    }
-
-    override fun clearChildren() {
-        _children.forEach { it.parent = null }
-        _children.clear()
-    }
-
-    override fun hasChild(node: INode): Boolean = node in _children
-
-    override fun findChildByName(name: String): INode? {
-        _children.forEach { child ->
-            if (child.name == name) return child
-            if (child is INodeParent) {
-                val found = child.findChildByName(name)
-                if (found != null) return found
-            }
-        }
-        return null
-    }
-
-    override fun forEachChildRecursive(action: (INode) -> Unit) {
-        _children.forEach { child ->
-            action(child)
-            if (child is INodeParent) {
-                child.forEachChildRecursive(action)
-            }
-        }
-    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T : IEditorComponent> getComponent(type: Class<T>): T? {
@@ -96,6 +47,4 @@ open class GameObject(
         val added = addComponent<T>()
         return added
     }
-
-    override fun toString(): String = "$displayType('$name')"
 }

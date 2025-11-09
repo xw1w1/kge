@@ -1,6 +1,8 @@
 package kge.api.std
 
 interface INode {
+    val nodeId: Int
+
     var name: String
 
     var isActive: Boolean
