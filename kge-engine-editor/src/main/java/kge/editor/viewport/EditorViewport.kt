@@ -95,8 +95,8 @@ class EditorViewport : EditorUIPanel("Viewport"), IRenderable {
             editorCamera?.updateProjectionMatrix(aspect)
             editorCamera?.updateViewMatrix()
 
-            handleMouse(width, height, hasFocus)
-            renderScene(delta, width, height, hasFocus, aspect)
+            handleMouse(hasFocus)
+            renderScene(delta, hasFocus, aspect)
 
             ImGui.image(
                 viewportFramebuffer.colorTex.toLong(),
@@ -114,13 +114,15 @@ class EditorViewport : EditorUIPanel("Viewport"), IRenderable {
 
     }
 
-    private fun renderScene(delta: Float, width: Int, height: Int, hasFocus: Boolean, aspect: Float) {
+    private fun renderScene(delta: Float, hasFocus: Boolean, aspect: Float) {
         val scene = EditorApplication.getInstance().getProjectManager().getCurrentScene()
         if (scene == null || editorCamera == null) return renderNoActiveSceneOrCamera(editorCamera == null).also {
             isActiveThisFrame = false
         }
 
         isActiveThisFrame = true
+        val width = ImGui.getContentRegionAvailX().toInt().coerceAtLeast(1)
+        val height = ImGui.getContentRegionAvailY().toInt().coerceAtLeast(1)
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, viewportFramebuffer.buffer)
         GL11.glViewport(0, 0, width, height)
         GL11.glDisable(GL11.GL_DEPTH_TEST)
@@ -293,19 +295,15 @@ class EditorViewport : EditorUIPanel("Viewport"), IRenderable {
     // endregion
 
     // region Input
-    private fun handleMouse(width: Int, height: Int, hasFocus: Boolean) {
+    private fun handleMouse(hasFocus: Boolean) {
         if (!ImGui.isWindowHovered() || !hasFocus || getMouseInHeader() || editorCamera == null) return
         val childPos = ImGui.getCursorScreenPos()
         val mouseX = (ImGui.getMousePosX() - childPos.x).coerceIn(0f, viewportFramebuffer.frameWidth.toFloat())
         val mouseY = (ImGui.getMousePosY() - childPos.y).coerceIn(0f, viewportFramebuffer.frameHeight.toFloat())
 
-        val winPos = ImGui.getWindowPos()
-        val cursorPos = ImGui.getCursorPos()
-        val relX = (mouseX - winPos.x - cursorPos.x).coerceIn(0f, width.toFloat())
-        val relY = (mouseY - winPos.y - cursorPos.y).coerceIn(0f, height.toFloat())
-
         val (rayOrigin, rayDir) = viewportRaycastManager.getMouseRay(
-            relX, relY, width, height,
+            mouseX, mouseY,
+            viewportFramebuffer.frameWidth, viewportFramebuffer.frameHeight,
             editorCamera.viewMatrix, editorCamera.projectionMatrix
         )
 
