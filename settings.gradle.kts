@@ -6,3 +6,5 @@ plugins {
 
 include("kge-api")
 include("kge-engine-editor")
+include("kge-imgui")
+include("kge-project-build")
