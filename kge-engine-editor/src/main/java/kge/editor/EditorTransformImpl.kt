@@ -20,13 +20,12 @@ class EditorTransformImpl : ITransform {
     }
 
     fun getWorldMatrix(parent: INodeParent?): Matrix4f {
-        val local = getLocalMatrix()
-        if (parent != null && parent is GameObject) {
-            val parentTransform = parent.transform
-            return Matrix4f(parentTransform.getWorldMatrix(parent.parent)).mul(local)
-        }
-        return local
+        return if (parent is GameObject && parent != this)
+            Matrix4f(parent.transform.getWorldMatrix(parent.parent)).mul(getLocalMatrix())
+        else
+            getLocalMatrix()
     }
+
 
     fun getWorldPosition(parent: INodeParent?): Vector3f {
         val result = Vector3f()

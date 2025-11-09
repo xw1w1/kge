@@ -2,7 +2,6 @@ package kge.editor.component
 
 import imgui.ImGui
 import imgui.flag.ImGuiTreeNodeFlags
-import kge.api.std.INode
 import kge.editor.EditorTransformImpl
 import kge.editor.ui.EditorFont
 import kge.editor.ui.EditorText
