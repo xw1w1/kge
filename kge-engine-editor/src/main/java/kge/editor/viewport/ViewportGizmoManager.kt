@@ -1,8 +1,9 @@
-package kge.editor.render.viewport
+package kge.editor.viewport
 
 import kge.api.editor.EditorSelectionGizmoAxis
 import kge.editor.GameObject
 import kge.editor.ResourceLoader
+import kge.editor.render.ViewportGizmoRenderer
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -31,8 +32,8 @@ class ViewportGizmoManager {
         )
     }
 
-    fun render(viewProj: Matrix4f, gizmoPos: Vector3f, cameraPos: Vector3f) {
-        gizmoRenderer.render(viewProj, gizmoPos, selectedAxis ?: highlightedAxis, cameraPos)
+    fun render(viewProj: Matrix4f, gizmoPos: Vector3f, cameraPos: Vector3f, highlight: Boolean) {
+        gizmoRenderer.render(viewProj, gizmoPos, if (highlight) selectedAxis ?: highlightedAxis else null, cameraPos)
     }
 
     fun handleMouse(
@@ -50,8 +51,7 @@ class ViewportGizmoManager {
 
         val center = Vector3f()
         for (obj in selectedObjects) {
-            val t = obj.transform
-            center.add(t.position)
+            center.add(obj.transform.getWorldPosition(obj.parent))
         }
         center.div(selectedObjects.size.toFloat())
 
@@ -74,8 +74,7 @@ class ViewportGizmoManager {
             getRayPlaneIntersection(rayOrigin, rayDir, center, dragPlaneNormal, dragStartHit)
 
             originalPositions = selectedObjects.associateWith { obj ->
-                val t = obj.transform
-                Vector3f(t.position)
+                obj.transform.getWorldPosition(obj.parent)
             }
 
             return
@@ -111,15 +110,15 @@ class ViewportGizmoManager {
                         val amount = delta.dot(worldAxis)
                         temp.set(worldAxis).mul(amount)
                         val newWorld = Vector3f(orig).add(temp)
-                        t.setWorldPosition(obj, newWorld)
+                        t.setWorldPosition(obj.parent, newWorld)
                     }
                     EditorSelectionGizmoAxis.TRANSLATE_CENTER -> {
                         val newWorld = Vector3f(orig).add(delta)
-                        t.setWorldPosition(obj, newWorld)
+                        t.setWorldPosition(obj.parent, newWorld)
                     }
                     EditorSelectionGizmoAxis.TRANSLATE_PLANE_XY, EditorSelectionGizmoAxis.TRANSLATE_PLANE_XZ, EditorSelectionGizmoAxis.TRANSLATE_PLANE_ZY -> {
                         val newWorld = Vector3f(orig).add(delta)
-                        t.setWorldPosition(obj, newWorld)
+                        t.setWorldPosition(obj.parent, newWorld)
                     }
 
                     else -> {}

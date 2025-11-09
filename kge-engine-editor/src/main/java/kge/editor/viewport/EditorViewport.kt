@@ -1,4 +1,4 @@
-package kge.editor.render.viewport
+package kge.editor.viewport
 
 import imgui.ImColor
 import imgui.ImGui
@@ -9,14 +9,11 @@ import kge.api.editor.ViewportFramebuffer
 import kge.api.editor.imgui.IRenderCallback
 import kge.api.render.IPerspectiveViewCamera
 import kge.api.std.IRenderable
-import kge.editor.EditorApplication
-import kge.editor.EditorCamera
-import kge.editor.GameObject
-import kge.editor.Raycast
-import kge.editor.ResourceLoader
+import kge.editor.*
 import kge.editor.component.MeshRenderer
-import kge.editor.project.EditorSceneImpl
 import kge.editor.render.ShaderProgram
+import kge.editor.render.ViewportAxisRenderer
+import kge.editor.render.ViewportGridRenderer
 import kge.editor.ui.EditorText
 import kge.editor.ui.EditorUIPanel
 import org.joml.Vector2f
@@ -27,7 +24,7 @@ import org.lwjgl.opengl.GL30
 import kotlin.math.max
 import kotlin.math.min
 
-class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
+class EditorViewport : EditorUIPanel("Viewport"), IRenderable {
     // region Viewport
     private val editorCamera: EditorCamera? = EditorCamera()
     private val viewportFramebuffer = ViewportFramebuffer()
@@ -65,6 +62,7 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
         viewportAxisRenderer.init()
         viewportGridRenderer.init()
     }
+
     fun getEditorCamera(): IPerspectiveViewCamera? {
         return editorCamera
     }
@@ -93,8 +91,12 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
             val hovered = ImGui.isWindowHovered(ImGuiHoveredFlags.RootAndChildWindows)
             val hasFocus = focused || hovered
 
+            val aspect = width.toFloat() / max(1f, height.toFloat())
+            editorCamera?.updateProjectionMatrix(aspect)
+            editorCamera?.updateViewMatrix()
+
             handleMouse(width, height, hasFocus)
-            renderScene(delta, width, height, hasFocus)
+            renderScene(delta, width, height, hasFocus, aspect)
 
             ImGui.image(
                 viewportFramebuffer.colorTex.toLong(),
@@ -111,7 +113,8 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
         this.endUI()
 
     }
-    private fun renderScene(delta: Float, width: Int, height: Int, hasFocus: Boolean) {
+
+    private fun renderScene(delta: Float, width: Int, height: Int, hasFocus: Boolean, aspect: Float) {
         val scene = EditorApplication.getInstance().getProjectManager().getCurrentScene()
         if (scene == null || editorCamera == null) return renderNoActiveSceneOrCamera(editorCamera == null).also {
             isActiveThisFrame = false
@@ -120,17 +123,16 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
         isActiveThisFrame = true
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, viewportFramebuffer.buffer)
         GL11.glViewport(0, 0, width, height)
-        GL11.glEnable(GL11.GL_DEPTH_TEST)
+        GL11.glDisable(GL11.GL_DEPTH_TEST)
         GL11.glClearColor(0.09f, 0.1f, 0.12f, 1f)
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
 
-        val aspect = width.toFloat() / max(1f, height.toFloat())
-        editorCamera.updateProjectionMatrix(aspect)
-        editorCamera.updateViewMatrix()
         val viewProj = editorCamera.getViewProjection(aspect)
 
         viewportGridRenderer.render(viewProj)
         viewportAxisRenderer.render(viewProj)
+
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
 
         viewportSceneShader.bind()
         val selection = EditorApplication.getInstance().getEditorSelection()
@@ -140,7 +142,7 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
             val renderer = obj.get<MeshRenderer>() ?: continue
             if (!obj.isActive) continue
 
-            val model = transform.getWorldMatrix(obj)
+            val model = transform.getWorldMatrix(obj.parent)
             viewportSceneShader.setUniformMat4("u_Model", model)
             viewportSceneShader.setUniformMat4("u_ViewProj", viewProj)
             viewportSceneShader.setUniform3f("u_Color", if (selList.contains(obj)) Vector3f(1f,1f,1f) else Vector3f(0.8f,0.4f,0.2f))
@@ -149,14 +151,18 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
         }
         viewportSceneShader.unbind()
 
-        val sel = selection.getSelectedObjects()
-        if (sel.isNotEmpty()) {
-            val gizmoPos = Vector3f()
-            sel.forEach { it.transform.let { t -> gizmoPos.add(t.position) } }
-            gizmoPos.div(sel.size.toFloat())
+        val selected = selection.getSelectedObjects()
+        if (selected.isNotEmpty()) {
+            val center = Vector3f()
+            for (obj in selected) {
+                center.add(obj.transform.getWorldPosition(obj.parent))
+            }
+            center.div(selected.size.toFloat())
             GL11.glDisable(GL11.GL_DEPTH_TEST)
             GL11.glDisable(GL11.GL_CULL_FACE)
-            viewportGizmoManager.render(viewProj, gizmoPos, editorCamera.position)
+
+            val suppressGizmoHighlight = !editorCamera.isRotating
+            viewportGizmoManager.render(viewProj, center, editorCamera.position, suppressGizmoHighlight)
             GL11.glEnable(GL11.GL_CULL_FACE)
             GL11.glEnable(GL11.GL_DEPTH_TEST)
         }
@@ -169,6 +175,7 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
             EditorApplication.getInstance().getKeyboard()
         )
     }
+
     private fun renderNoActiveSceneOrCamera(noCamera: Boolean) {
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, viewportFramebuffer.buffer)
         GL11.glViewport(0, 0, viewportFramebuffer.frameWidth, viewportFramebuffer.frameHeight)
@@ -199,30 +206,46 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
             ImColor.rgba(255, 255, 255, 255),
             "FPS: %.0f".format(frameRate))
     }
+
     private fun drawSelectionRect() {
         if (!isSelecting) return
+
+        val childPos = ImGui.getWindowPos()
         val drawList = ImGui.getWindowDrawList()
-        drawList.addRect(selectionStart.x, selectionStart.y, selectionEnd.x, selectionEnd.y, ImColor.rgba(255, 255, 0, 255))
+
+        val x0 = selectionStart.x + childPos.x
+        val y0 = selectionStart.y + childPos.y
+        val x1 = selectionEnd.x + childPos.x
+        val y1 = selectionEnd.y + childPos.y
+
+        drawList.addRect(x1, y1, x0, y0, ImColor.rgba(255, 255, 0, 255), 0f, 2f)
     }
+
     private fun performBoxSelection(width: Int, height: Int) {
-        if (editorCamera == null) return
+        val camera = editorCamera ?: return
+        val scene = EditorApplication.getInstance().getProjectManager().getCurrentScene() ?: return
+
         val minX = min(selectionStart.x, selectionEnd.x)
         val maxX = max(selectionStart.x, selectionEnd.x)
         val minY = min(selectionStart.y, selectionEnd.y)
         val maxY = max(selectionStart.y, selectionEnd.y)
 
-        val selectedObjects = mutableListOf<GameObject>()
-        val viewProj = editorCamera.getViewProjection(width.toFloat() / height)
+        val viewProj = camera.getViewProjection(width.toFloat() / height)
 
-        val scene: EditorSceneImpl = EditorApplication.getInstance().getProjectManager().getCurrentScene() ?: return
+        val selectedObjects = mutableListOf<GameObject>()
+
+        val tmp = Vector3f()
+        val clip = Vector4f()
+        val screenCorners = Array(8) { Vector2f() }
 
         for (obj in scene.getAllObjects()) {
-            val t = obj.transform
-            val r = obj.get<MeshRenderer>() ?: continue
+            val renderer = obj.get<MeshRenderer>() ?: continue
             if (!obj.isActive) continue
 
-            val boundsMin = r.mesh.boundsMin
-            val boundsMax = r.mesh.boundsMax
+            val boundsMin = renderer.mesh.boundsMin
+            val boundsMax = renderer.mesh.boundsMax
+            val model = obj.transform.getWorldMatrix(obj.parent)
+
             val corners = arrayOf(
                 Vector3f(boundsMin.x, boundsMin.y, boundsMin.z),
                 Vector3f(boundsMin.x, boundsMin.y, boundsMax.z),
@@ -234,34 +257,48 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
                 Vector3f(boundsMax.x, boundsMax.y, boundsMax.z)
             )
 
-            val model = t.getWorldMatrix(obj)
-            var intersects = false
-            for (corner in corners) {
-                val worldPos = model.transformPosition(Vector3f(corner), Vector3f())
-                val clip = Vector4f(worldPos, 1f)
+            var screenMinX = Float.POSITIVE_INFINITY
+            var screenMinY = Float.POSITIVE_INFINITY
+            var screenMaxX = Float.NEGATIVE_INFINITY
+            var screenMaxY = Float.NEGATIVE_INFINITY
+
+            for (i in corners.indices) {
+                model.transformPosition(corners[i], tmp)
+                clip.set(tmp, 1f)
                 viewProj.transform(clip)
                 if (clip.w != 0f) clip.div(clip.w)
 
                 val screenX = (clip.x * 0.5f + 0.5f) * width
                 val screenY = (1f - (clip.y * 0.5f + 0.5f)) * height
-                if (screenX in minX..maxX && screenY in minY..maxY) {
-                    intersects = true
-                    break
-                }
+
+                screenCorners[i].set(screenX, screenY)
+
+                screenMinX = min(screenMinX, screenX)
+                screenMaxX = max(screenMaxX, screenX)
+                screenMinY = min(screenMinY, screenY)
+                screenMaxY = max(screenMaxY, screenY)
             }
 
-            if (intersects) selectedObjects.add(obj)
+            val overlaps = !(screenMaxX < minX || screenMinX > maxX || screenMaxY < minY || screenMinY > maxY)
+            if (overlaps) selectedObjects.add(obj)
         }
+
         val selection = EditorApplication.getInstance().getEditorSelection()
-        if (selectedObjects.isNotEmpty()) selection.addSelection(*selectedObjects.toTypedArray()) else selection.clearSelection()
+        if (selectedObjects.isNotEmpty()) {
+            selection.addSelection(*selectedObjects.toTypedArray())
+        } else {
+            selection.clearSelection()
+        }
     }
     // endregion
 
     // region Input
     private fun handleMouse(width: Int, height: Int, hasFocus: Boolean) {
         if (!ImGui.isWindowHovered() || !hasFocus || getMouseInHeader() || editorCamera == null) return
-        val mouseX = ImGui.getMousePosX()
-        val mouseY = ImGui.getMousePosY()
+        val childPos = ImGui.getCursorScreenPos()
+        val mouseX = (ImGui.getMousePosX() - childPos.x).coerceIn(0f, viewportFramebuffer.frameWidth.toFloat())
+        val mouseY = (ImGui.getMousePosY() - childPos.y).coerceIn(0f, viewportFramebuffer.frameHeight.toFloat())
+
         val winPos = ImGui.getWindowPos()
         val cursorPos = ImGui.getCursorPos()
         val relX = (mouseX - winPos.x - cursorPos.x).coerceIn(0f, width.toFloat())
@@ -272,18 +309,18 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
             editorCamera.viewMatrix, editorCamera.projectionMatrix
         )
 
-        val isDown = ImGui.isMouseDown(0)
+        val isLMBDown = (ImGui.isMouseDown(0) && !ImGui.isMouseDown(1))
         val isClicked = ImGui.isMouseClicked(0)
         val isReleased = ImGui.isMouseReleased(0)
 
-        viewportGizmoManager.handleMouse(rayOrigin, rayDir, EditorApplication.getInstance().getEditorSelection().getSelectedObjects(), isDown, isClicked, editorCamera.position)
+        viewportGizmoManager.handleMouse(rayOrigin, rayDir, EditorApplication.getInstance().getEditorSelection().getSelectedObjects(), isLMBDown, isClicked, editorCamera.position)
 
         if (isClicked && !viewportGizmoManager.isDragging) {
             selectionStart.set(mouseX, mouseY)
             potentialClick = true
             isSelecting = false
         }
-        if (isDown && potentialClick && !isSelecting) {
+        if (isLMBDown && potentialClick && !isSelecting) {
             val dx = mouseX - selectionStart.x
             val dy = mouseY - selectionStart.y
             if (dx * dx + dy * dy > dragStartThreshold * dragStartThreshold) {
@@ -295,7 +332,7 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
 
         if (isReleased) {
             if (isSelecting) {
-                performBoxSelection(width, height)
+                performBoxSelection(viewportFramebuffer.frameWidth, viewportFramebuffer.frameHeight)
             } else if (potentialClick) {
                 handleSingleClick(rayOrigin, rayDir)
             }
@@ -303,6 +340,7 @@ class EditorViewport() : EditorUIPanel("Viewport"), IRenderable {
             potentialClick = false
         }
     }
+
     private fun handleSingleClick(rayOrigin: Vector3f, rayDir: Vector3f) {
         var closest: Pair<Float, GameObject>? = null
         val scene = EditorApplication.getInstance().getProjectManager().getCurrentScene() ?: return
