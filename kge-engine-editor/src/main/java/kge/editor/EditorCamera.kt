@@ -1,8 +1,8 @@
 package kge.editor
 
+import kge.api.render.IPerspectiveViewCamera
 import kge.editor.input.GLFWKeyboard
 import kge.editor.input.GLFWMouse
-import kge.api.render.IPerspectiveViewCamera
 import org.joml.Math.toRadians
 import org.joml.Matrix4f
 import org.joml.Quaternionf
@@ -13,11 +13,14 @@ class EditorCamera : IPerspectiveViewCamera {
     override var position = Vector3f(0f, 3f, 10f)
     override var rotation = Quaternionf()
 
+    private var yaw = 0f
+    private var pitch = 0f
+
     override val viewMatrix = Matrix4f()
     override val projectionMatrix = Matrix4f()
 
     var moveSpeedBase = 8f
-    var sensitivity = 0.0035f
+    var sensitivity = 0.0025f
     var zoomSpeed = 2.0f
     var isRotating = false
     private var fieldOfView: Float = 60f
@@ -40,12 +43,15 @@ class EditorCamera : IPerspectiveViewCamera {
         if (isRotating) {
             val dx = mouse.dx.toFloat()
             val dy = mouse.dy.toFloat()
-            val eulerY = -dx * sensitivity
-            val eulerX = -dy * sensitivity
 
-            val qx = Quaternionf().rotateX(eulerX)
-            val qy = Quaternionf().rotateY(eulerY)
-            rotation.mul(qy).mul(qx).normalize()
+            yaw -= dx * sensitivity * 180f / Math.PI.toFloat()
+            pitch -= dy * sensitivity * 180f / Math.PI.toFloat()
+
+            pitch = pitch.coerceIn(-89f, 89f)
+
+            rotation.identity()
+                .rotateY(toRadians(yaw))
+                .rotateX(toRadians(pitch))
         }
 
         forward.set(0f, 0f, -1f).rotate(rotation)
