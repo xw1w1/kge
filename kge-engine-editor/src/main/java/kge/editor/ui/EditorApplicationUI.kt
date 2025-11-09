@@ -1,4 +1,4 @@
-package kge.editor.render
+package kge.editor.ui
 
 import imgui.ImGui
 import imgui.flag.ImGuiConfigFlags
@@ -7,9 +7,9 @@ import imgui.glfw.ImGuiImplGlfw
 import kge.api.editor.imgui.IRenderCallback
 import kge.api.std.IRenderable
 import kge.editor.EditorWindow
-import kge.editor.ui.EditorDockspace
-import kge.editor.ui.EditorMenuBar
-import kge.editor.ui.EditorUIPanel
+import kge.editor.ui.window.ConsoleOutputWindow
+import kge.editor.ui.window.ObjectInspectorWindow
+import kge.editor.ui.window.SceneHierarchyWindow
 
 class EditorApplicationUI : IRenderable {
     private val imGuiGl3 = ImGuiImplGl3()
@@ -18,6 +18,10 @@ class EditorApplicationUI : IRenderable {
 
     private val editorMenuBar = EditorMenuBar()
     private val editorDockspace = EditorDockspace()
+
+    private val hierarchyPanel: SceneHierarchyWindow = SceneHierarchyWindow()
+    private val inspectorPanel: ObjectInspectorWindow = ObjectInspectorWindow()
+    private val consoleOutputPanel: ConsoleOutputWindow = ConsoleOutputWindow()
 
     fun createImGuiContext(window: EditorWindow) {
         ImGui.createContext()
@@ -28,6 +32,8 @@ class EditorApplicationUI : IRenderable {
 
         imGuiGlfw.init(window.getHandle(), true)
         imGuiGl3.init("#version 150")
+
+        KgeEditorStyle()
     }
 
     fun newFrame() {
@@ -46,6 +52,18 @@ class EditorApplicationUI : IRenderable {
 
     fun getEditorMenuBar(): EditorMenuBar {
         return editorMenuBar
+    }
+
+    fun getHierarchyPanel(): SceneHierarchyWindow {
+        return hierarchyPanel
+    }
+
+    fun getInspectorPanel(): ObjectInspectorWindow {
+        return inspectorPanel
+    }
+
+    fun getConsoleOutputPanel(): ConsoleOutputWindow {
+        return consoleOutputPanel
     }
 
     override fun render(delta: Float) {

@@ -6,8 +6,8 @@ import kge.editor.input.GLFWKeyboard
 import kge.editor.input.GLFWMouse
 import kge.editor.project.EditorProjectManager
 import kge.editor.render.DefaultEditorRenderPipeline
-import kge.editor.render.EditorApplicationUI
-import kge.editor.render.viewport.EditorViewport
+import kge.editor.ui.EditorApplicationUI
+import kge.editor.viewport.EditorViewport
 import kge.editor.ui.EditorFont
 import org.lwjgl.glfw.GLFW
 
@@ -58,8 +58,6 @@ class EditorApplication {
     fun getMouse() = mouse
     fun getKeyboard() = keyboard
 
-    fun getInputSystem() = inputSystem
-
     fun setTitle(title: String) {
         window.title = "KGE Editor — $title "
     }
@@ -73,7 +71,6 @@ class EditorApplication {
             val currentTime = GLFW.glfwGetTime()
             _delta = (currentTime - lastTime).toFloat()
             lastTime = currentTime
-
             window.pollEvents()
             window.clear()
 
@@ -82,6 +79,9 @@ class EditorApplication {
             val dockspace = editorApplicationUI.getEditorDockspace()
             dockspace.beginUI()
             editorApplicationUI.getEditorMenuBar().render(_delta)
+            editorApplicationUI.getHierarchyPanel().render(_delta)
+            editorApplicationUI.getInspectorPanel().render(_delta)
+            editorApplicationUI.getConsoleOutputPanel().render(_delta)
             editorViewport.render(_delta)
             dockspace.endUI()
 
