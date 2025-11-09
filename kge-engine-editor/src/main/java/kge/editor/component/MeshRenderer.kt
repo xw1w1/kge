@@ -4,7 +4,6 @@ import imgui.ImColor
 import imgui.ImGui
 import imgui.flag.ImGuiTreeNodeFlags
 import kge.api.std.IGLMesh
-import kge.api.std.INode
 import kge.editor.Primitives
 import kge.editor.ui.EditorFont
 import kge.editor.ui.EditorText
@@ -41,9 +40,8 @@ class MeshRenderer(
             )
             ImGui.dummy(0f, 4f)
 
-            val value = booleanArrayOf(renderEnabled)
-            if (ImGui.checkbox("Render Enabled", value[0])) {
-                renderEnabled = value[0]
+            if (ImGui.checkbox("Render Enabled", renderEnabled)) {
+                renderEnabled = !renderEnabled
             }
 
             ImGui.separator()
