@@ -6,16 +6,14 @@ import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.system.MemoryUtil
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
 
 class GLMesh(
     private val vertices: FloatArray,
     private val indices: IntArray? = null,
     override val drawMode: Int = GL_TRIANGLES,
     override val boundsMin: Vector3f = Vector3f(),
-    override val boundsMax: Vector3f = Vector3f()
+    override val boundsMax: Vector3f = Vector3f(),
+    private val strideFloats: Int = 3
 ) : IGLMesh {
 
     override var vao: Int = 0
@@ -23,11 +21,10 @@ class GLMesh(
     override var ebo: Int = 0
 
     override val vertexCount: Int
-        get() = indices?.size ?: (vertices.size / 3)
+        get() = indices?.size ?: (vertices.size / strideFloats)
 
-    private var uploaded = false
+    var uploaded = false
 
-    // region Lifecycle
     override fun upload() {
         if (uploaded) return
         uploaded = true
@@ -42,8 +39,23 @@ class GLMesh(
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
+        val strideBytes = strideFloats * Float.SIZE_BYTES
+
+        // position at location 0 (3f)
         glEnableVertexAttribArray(0)
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.SIZE_BYTES, 0L)
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, strideBytes, 0L)
+
+        // if stride >= 6 next 3 floats=normal attrib 1
+        if (strideFloats >= 6) {
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, strideBytes, (3 * Float.SIZE_BYTES).toLong())
+        }
+
+        // if stride >= 8 texCoord offset 6 (2 floats)
+        if (strideFloats >= 8) {
+            glEnableVertexAttribArray(2)
+            glVertexAttribPointer(2, 2, GL_FLOAT, false, strideBytes, (6 * Float.SIZE_BYTES).toLong())
+        }
 
         if (indices != null) {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
@@ -60,18 +72,19 @@ class GLMesh(
 
     override fun render() {
         bind()
-        if (hasIndices)
+        if (indices != null && indices.isNotEmpty()) {
             glDrawElements(drawMode, vertexCount, GL_UNSIGNED_INT, 0L)
-        else
+        } else {
             glDrawArrays(drawMode, 0, vertexCount)
+        }
         unbind()
     }
 
     override fun unbind() = glBindVertexArray(0)
 
     override fun destroy() {
-        glDeleteVertexArrays(vao)
-        glDeleteBuffers(vbo)
+        if (vao != 0) glDeleteVertexArrays(vao)
+        if (vbo != 0) glDeleteBuffers(vbo)
         if (ebo != 0) glDeleteBuffers(ebo)
         vao = 0
         vbo = 0
@@ -79,97 +92,36 @@ class GLMesh(
         uploaded = false
     }
 
-    // endregion
-
     private fun computeBounds() {
         if (vertices.isEmpty()) return
-        boundsMin.set(vertices[0], vertices[1], vertices[2])
-        boundsMax.set(boundsMin)
-        for (i in vertices.indices step 3) {
-            val x = vertices[i]
-            val y = vertices[i + 1]
-            val z = vertices[i + 2]
-            boundsMin.min(Vector3f(x, y, z))
-            boundsMax.max(Vector3f(x, y, z))
+        var idx = 0
+        val min = Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        val max = Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY)
+        while (idx < vertices.size) {
+            val x = vertices[idx]
+            val y = vertices.getOrElse(idx + 1) { 0f }
+            val z = vertices.getOrElse(idx + 2) { 0f }
+            min.min(Vector3f(x, y, z))
+            max.max(Vector3f(x, y, z))
+            idx += strideFloats
         }
+        boundsMin.set(min)
+        boundsMax.set(max)
     }
 
     companion object {
         fun create(
             vertices: FloatArray,
-            strideFloats: Int = 0,
+            strideFloats: Int = 3,
             indices: IntArray? = null,
             drawMode: Int = GL_TRIANGLES
         ): GLMesh {
             if (vertices.isEmpty()) throw IllegalArgumentException("vertices array is empty")
 
-            val stride = when {
-                strideFloats > 0 -> strideFloats
-                vertices.size % 6 == 0 -> 6
-                vertices.size % 3 == 0 -> 3
-                else -> 3
-            }
+            val mesh = GLMesh(vertices.copyOf(), indices?.copyOf(), drawMode, Vector3f(), Vector3f(), strideFloats)
 
-            val boundsMin = Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-            val boundsMax = Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY)
-
-            var i = 0
-            while (i < vertices.size) {
-                val x = vertices[i]
-                val y = vertices.getOrElse(i + 1) { 0f }
-                val z = vertices.getOrElse(i + 2) { 0f }
-
-                boundsMin.x = minOf(boundsMin.x, x)
-                boundsMin.y = minOf(boundsMin.y, y)
-                boundsMin.z = minOf(boundsMin.z, z)
-
-                boundsMax.x = maxOf(boundsMax.x, x)
-                boundsMax.y = maxOf(boundsMax.y, y)
-                boundsMax.z = maxOf(boundsMax.z, z)
-
-                i += stride
-            }
-
-            val vao = glGenVertexArrays()
-            glBindVertexArray(vao)
-
-            val vbo = glGenBuffers()
-            val vBuf: FloatBuffer = MemoryUtil.memAllocFloat(vertices.size)
-            vBuf.put(vertices).flip()
-            glBindBuffer(GL_ARRAY_BUFFER, vbo)
-            glBufferData(GL_ARRAY_BUFFER, vBuf, GL_STATIC_DRAW)
-
-            val strideBytes = stride * Float.SIZE_BYTES
-            glEnableVertexAttribArray(0)
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, strideBytes, 0L)
-
-            if (stride >= 6) {
-                glEnableVertexAttribArray(1)
-                glVertexAttribPointer(1, 3, GL_FLOAT, false, strideBytes, (3 * Float.SIZE_BYTES).toLong())
-            }
-
-            var ebo = 0
-
-            if (indices != null && indices.isNotEmpty()) {
-                ebo = glGenBuffers()
-                val iBuf: IntBuffer = MemoryUtil.memAllocInt(indices.size)
-                iBuf.put(indices).flip()
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, iBuf, GL_STATIC_DRAW)
-                MemoryUtil.memFree(iBuf)
-            }
-
-            glBindVertexArray(0)
-            MemoryUtil.memFree(vBuf)
-
-            return GLMesh(vertices, indices, drawMode).apply {
-                this.vao = vao
-                this.vbo = vbo
-                this.ebo = ebo
-                this.boundsMin.set(boundsMin)
-                this.boundsMax.set(boundsMax)
-                this.uploaded = true
-            }
+            mesh.upload()
+            return mesh
         }
 
         fun fromTriangles(vertices: FloatArray, indices: IntArray? = null): GLMesh {
