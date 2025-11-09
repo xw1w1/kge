@@ -8,9 +8,7 @@ open class Component(
 
     open var enabled: Boolean = true
 
-    open fun onAttach() {}
-
-    open fun onDetach() {}
+    open fun onAwake() {}
 
     open fun onUpdate(deltaTime: Float) {}
 

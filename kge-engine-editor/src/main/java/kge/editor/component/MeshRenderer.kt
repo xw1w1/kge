@@ -72,8 +72,4 @@ class MeshRenderer(
         mesh.render()
         mesh.unbind()
     }
-
-    override fun onDetach() {
-        mesh.destroy()
-    }
 }
