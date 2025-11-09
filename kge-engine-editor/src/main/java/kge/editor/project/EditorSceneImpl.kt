@@ -4,6 +4,7 @@ import kge.api.render.IPerspectiveViewCamera
 import kge.api.std.INode
 import kge.api.std.INodeParent
 import kge.api.std.IScene
+import kge.api.std.Node
 import kge.editor.EditorApplication
 import kge.editor.GameObject
 
@@ -29,45 +30,34 @@ class EditorSceneImpl(
     }
 
     override fun getAllObjects(): List<GameObject> {
-        return this.root.children.filter { it is GameObject }.map { it as GameObject }
+        val result = mutableListOf<GameObject>()
+        root.forEachChildRecursive { node ->
+            if (node is GameObject) result += node
+        }
+        return result
     }
+
+    fun getSelection() = EditorApplication.getInstance().getEditorSelection()
 
     override fun clear() {
         this.root.clearChildren()
     }
 
-    class EditorSceneRoot(sceneId: String) : INodeParent {
-        override val children: MutableList<INode> = mutableListOf()
+    class EditorSceneRoot(sceneId: String) : Node(sceneId), INodeParent {
+        init { name = sceneId }
 
-        override var name: String = sceneId
         override var isActive: Boolean = true
-            set(_) { throw UnsupportedOperationException() }
+            set(_) {
+                throw UnsupportedOperationException("EditorSceneRoot cannot change active state")
+            }
 
-        override var parent: INodeParent? = this
-        override val displayType: String = "$sceneId#EditorSceneRoot"
+        override var parent: INodeParent? = null
+            set(_) {
+                throw UnsupportedOperationException("EditorSceneRoot cannot have a parent")
+            }
 
-        override fun addChild(child: INode) {
-            this.children.add(child)
-        }
-
-        override fun removeChild(child: INode) {
-            this.children.remove(child)
-        }
-
-        override fun clearChildren() {
-            this.children.clear()
-        }
-
-        override fun hasChild(node: INode): Boolean {
-            return this.children.contains(node)
-        }
-
-        override fun findChildByName(name: String): INode? {
-            return this.children.firstOrNull { it.name == name }
-        }
-
-        override fun forEachChildRecursive(action: (INode) -> Unit) {
-            this.children.forEach(action)
-        }
+        override val displayType: String
+            get() = "$name#EditorSceneRoot"
     }
+
 }
