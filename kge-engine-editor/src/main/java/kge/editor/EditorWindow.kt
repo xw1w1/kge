@@ -29,7 +29,7 @@ class EditorWindow(private val width: Int, private val height: Int) : IGLWindow 
         if (windowHandle == 0L) throw RuntimeException("Failed to create GLFW window")
 
         GLFW.glfwMakeContextCurrent(windowHandle)
-        GLFW.glfwSwapInterval(1)
+        GLFW.glfwSwapInterval(0)
 
         GL.createCapabilities()
         GL11.glEnable(GL11.GL_DEPTH_TEST)
@@ -49,6 +49,10 @@ class EditorWindow(private val width: Int, private val height: Int) : IGLWindow 
     fun swapBuffers() = GLFW.glfwSwapBuffers(windowHandle)
 
     fun getHandle(): Long = windowHandle
+
+    fun setVSync(boolean: Boolean) {
+        GLFW.glfwSwapInterval(if (boolean) 1 else 0)
+    }
 
     override fun getSize(): Vector2i {
         val w = IntArray(1)
