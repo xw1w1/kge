@@ -19,12 +19,6 @@ object ResourceLoader {
         return ShaderProgram(vertexSrc, fragmentSrc)
     }
 
-    private fun readTextResource(path: String): String {
-        val stream = javaClass.classLoader.getResourceAsStream(path)
-            ?: throw IllegalArgumentException("Resource not found in path $path")
-        return stream.bufferedReader().use { it.readText() }
-    }
-
     /**
      *  DRAW MODE
      *  VERTICES
@@ -32,7 +26,7 @@ object ResourceLoader {
      */
     fun loadMesh(path: String): GLMesh {
         val stream = javaClass.classLoader.getResourceAsStream(path)
-            ?: throw IllegalArgumentException("not found $path")
+            ?: throw IllegalArgumentException("Resource not found: $path")
 
         val reader = BufferedReader(InputStreamReader(stream))
         var mode = "TRIANGLES"
@@ -77,11 +71,19 @@ object ResourceLoader {
         }
 
         if (vertices.isEmpty())
-            throw IllegalArgumentException("no vertices $path")
+            throw IllegalArgumentException("No vertices found in $path")
+
+        val strideFloats = when {
+            vertices.size % 6 == 0 -> 6
+            vertices.size % 3 == 0 -> 3
+            else -> 3
+        }
+
+        val strideBytes = strideFloats * Float.SIZE_BYTES
 
         val boundsMin = Vector3f(Float.POSITIVE_INFINITY)
         val boundsMax = Vector3f(Float.NEGATIVE_INFINITY)
-        for (i in vertices.indices step 6) {
+        for (i in vertices.indices step strideFloats) {
             val x = vertices[i]
             val y = vertices[i + 1]
             val z = vertices[i + 2]
@@ -93,31 +95,31 @@ object ResourceLoader {
             if (z > boundsMax.z) boundsMax.z = z
         }
 
+        // === Создаём и заполняем буферы ===
         val vao = GL30.glGenVertexArrays()
         GL30.glBindVertexArray(vao)
 
         val vbo = GL15.glGenBuffers()
-        val vertexBuffer: FloatBuffer = MemoryUtil.memAllocFloat(vertices.size)
+        val vertexBuffer = MemoryUtil.memAllocFloat(vertices.size)
         vertexBuffer.put(vertices.toFloatArray()).flip()
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_STATIC_DRAW)
 
-        val stride = 6 * 4
         GL20.glEnableVertexAttribArray(0)
-        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, stride, 0L)
-        GL20.glEnableVertexAttribArray(1)
-        GL20.glVertexAttribPointer(1, 3, GL11.GL_FLOAT, false, stride, (3 * 4).toLong())
+        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, strideBytes, 0L)
+
+        if (strideFloats >= 6) {
+            GL20.glEnableVertexAttribArray(1)
+            GL20.glVertexAttribPointer(1, 3, GL11.GL_FLOAT, false, strideBytes, (3 * Float.SIZE_BYTES).toLong())
+        }
 
         var ebo = 0
-        var indexCount = 0
-
         if (indices.isNotEmpty()) {
             ebo = GL15.glGenBuffers()
-            val indexBuffer: IntBuffer = MemoryUtil.memAllocInt(indices.size)
+            val indexBuffer = MemoryUtil.memAllocInt(indices.size)
             indexBuffer.put(indices.toIntArray()).flip()
             GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ebo)
             GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW)
-            indexCount = indices.size
             MemoryUtil.memFree(indexBuffer)
         }
 
@@ -125,11 +127,22 @@ object ResourceLoader {
         MemoryUtil.memFree(vertexBuffer)
 
         return GLMesh(
-            vertices.toFloatArray(),
-            indices.toIntArray(),
-            drawMode = if (mode == "LINES") GL11.GL_LINES else GL11.GL_TRIANGLES,
+            vertices = vertices.toFloatArray(),
+            indices = if (indices.isEmpty()) null else indices.toIntArray(),
+            drawMode = if (mode.equals("LINES", ignoreCase = true)) GL11.GL_LINES else GL11.GL_TRIANGLES,
             boundsMin = boundsMin,
             boundsMax = boundsMax
-        )
+        ).apply {
+            this.vao = vao
+            this.vbo = vbo
+            this.ebo = ebo
+            this.uploaded = true
+        }
+    }
+
+    private fun readTextResource(path: String): String {
+        val stream = javaClass.classLoader.getResourceAsStream(path)
+            ?: throw IllegalArgumentException("Resource not found in path $path")
+        return stream.bufferedReader().use { it.readText() }
     }
 }
