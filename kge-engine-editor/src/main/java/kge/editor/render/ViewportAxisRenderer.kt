@@ -1,8 +1,7 @@
-package kge.editor.render.viewport
+package kge.editor.render
 
 import kge.editor.GLMesh
 import kge.editor.ResourceLoader
-import kge.editor.render.ShaderProgram
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL11
 
@@ -28,7 +27,7 @@ class ViewportAxisRenderer {
 
         sh.bind()
         sh.setUniformMat4("u_ViewProj", viewProj)
-        GL11.glLineWidth(0.2f)
+        GL11.glLineWidth(1f)
         m.render()
         sh.unbind()
     }

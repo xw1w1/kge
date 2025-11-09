@@ -1,9 +1,8 @@
-package kge.editor.render.viewport
+package kge.editor.render
 
 import kge.api.editor.EditorSelectionGizmoAxis
 import kge.editor.EditorApplication
 import kge.editor.GLMesh
-import kge.editor.render.ShaderProgram
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import kotlin.math.cos

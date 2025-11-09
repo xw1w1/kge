@@ -1,8 +1,7 @@
-package kge.editor.render.viewport
+package kge.editor.render
 
 import kge.editor.GLMesh
 import kge.editor.ResourceLoader
-import kge.editor.render.ShaderProgram
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
