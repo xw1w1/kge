@@ -4,8 +4,7 @@ import imgui.ImGui
 import kge.api.editor.imgui.IRenderCallback
 import kge.api.std.IRenderable
 import kge.editor.EditorApplication
-import kge.editor.GameObject
-import kge.editor.component.MeshRenderer
+import kge.editor.ui.window.CreateMenuRenderable
 import org.lwjgl.glfw.GLFW
 
 class EditorMenuBar : IRenderable {
@@ -24,22 +23,9 @@ class EditorMenuBar : IRenderable {
 
             val scene = EditorApplication.getInstance().getProjectManager().getCurrentScene()
             if (scene != null) {
-                if (ImGui.beginMenu("Create")) {
-                    if (ImGui.menuItem("GameObject")) {
-                        val node = GameObject()
-                        scene.root.addChild(node)
-                        EditorApplication.getInstance().getEditorSelection().select(node)
-                    }
-                    if (ImGui.menuItem("Cube")) {
-                        val node = GameObject()
-                        val component = MeshRenderer()
-                        node.addComponent(component)
-                        scene.root.addChild(node)
-                        EditorApplication.getInstance().getEditorSelection().select(node)
-                    }
-                    ImGui.endMenu()
-                }
+                CreateMenuRenderable.render()
             }
+
             if (ImGui.menuItem("Exit")) {
                 GLFW.glfwSetWindowShouldClose(EditorApplication.getInstance().getWindowHandle(), true)
             }

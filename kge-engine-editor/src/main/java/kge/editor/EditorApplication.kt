@@ -1,6 +1,7 @@
 package kge.editor
 
 import imgui.ImGui
+import kge.api.editor.imgui.IRenderCallback
 import kge.editor.input.GLFWInputSystem
 import kge.editor.input.GLFWKeyboard
 import kge.editor.input.GLFWMouse
@@ -64,6 +65,14 @@ class EditorApplication {
 
     fun getWindowHandle() = window.windowHandle
 
+    fun appendConsole(string: String) {
+        this.editorApplicationUI.getConsoleOutputPanel().log(string)
+    }
+
+    fun appendConsole(callback: IRenderCallback) {
+        this.editorApplicationUI.getConsoleOutputPanel().pushRenderCallback(callback)
+    }
+
     private fun mainLoop() {
         var lastTime = GLFW.glfwGetTime()
 
@@ -82,6 +91,7 @@ class EditorApplication {
             editorApplicationUI.getHierarchyPanel().render(_delta)
             editorApplicationUI.getInspectorPanel().render(_delta)
             editorApplicationUI.getConsoleOutputPanel().render(_delta)
+            editorApplicationUI.getEditorCameraPanel().render(_delta)
             editorViewport.render(_delta)
             dockspace.endUI()
 

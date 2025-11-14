@@ -6,8 +6,10 @@ import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import kge.api.editor.imgui.IRenderCallback
 import kge.api.std.IRenderable
+import kge.editor.ui.dragndrop.EditorDragManager
 import kge.editor.EditorWindow
 import kge.editor.ui.window.ConsoleOutputWindow
+import kge.editor.ui.window.EditorCameraSettingsWindow
 import kge.editor.ui.window.ObjectInspectorWindow
 import kge.editor.ui.window.SceneHierarchyWindow
 
@@ -22,13 +24,13 @@ class EditorApplicationUI : IRenderable {
     private val hierarchyPanel: SceneHierarchyWindow = SceneHierarchyWindow()
     private val inspectorPanel: ObjectInspectorWindow = ObjectInspectorWindow()
     private val consoleOutputPanel: ConsoleOutputWindow = ConsoleOutputWindow()
+    private val editorCameraPanel: EditorCameraSettingsWindow = EditorCameraSettingsWindow()
 
     fun createImGuiContext(window: EditorWindow) {
         ImGui.createContext()
         val io = ImGui.getIO()
         io.configFlags = io.configFlags or ImGuiConfigFlags.NavEnableKeyboard
         io.configFlags = io.configFlags or ImGuiConfigFlags.DockingEnable
-        // maybe in future: io.configFlags = io.configFlags or ImGuiConfigFlags.ViewportsEnable
 
         imGuiGlfw.init(window.getHandle(), true)
         imGuiGl3.init("#version 150")
@@ -66,10 +68,17 @@ class EditorApplicationUI : IRenderable {
         return consoleOutputPanel
     }
 
+    fun getEditorCameraPanel(): EditorCameraSettingsWindow {
+        return editorCameraPanel
+    }
+
     override fun render(delta: Float) {
+        EditorDragManager.processPendingAndRender()
+
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
     }
+
 
     override fun pushRenderCallback(cb: IRenderCallback) { /** no logging huh? **/ }
 }

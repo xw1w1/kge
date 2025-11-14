@@ -1,9 +1,8 @@
-package kge.editor
+package kge.editor.camera
 
 import kge.api.render.IPerspectiveViewCamera
 import kge.editor.input.GLFWKeyboard
 import kge.editor.input.GLFWMouse
-import org.joml.Math.toRadians
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -12,6 +11,10 @@ import org.lwjgl.glfw.GLFW
 class EditorCamera : IPerspectiveViewCamera {
     override var position = Vector3f(0f, 3f, 10f)
     override var rotation = Quaternionf()
+
+    val editorCameraComponent = EditorCameraComponent(this).also {
+        it.targetCamera = this
+    }
 
     private var yaw = 0f
     private var pitch = 0f
@@ -50,8 +53,8 @@ class EditorCamera : IPerspectiveViewCamera {
             pitch = pitch.coerceIn(-89f, 89f)
 
             rotation.identity()
-                .rotateY(toRadians(yaw))
-                .rotateX(toRadians(pitch))
+                .rotateY(org.joml.Math.toRadians(yaw))
+                .rotateX(org.joml.Math.toRadians(pitch))
         }
 
         forward.set(0f, 0f, -1f).rotate(rotation)
@@ -87,7 +90,7 @@ class EditorCamera : IPerspectiveViewCamera {
 
     override fun updateProjectionMatrix(aspect: Float): Matrix4f {
         return projectionMatrix.identity()
-            .perspective(toRadians(fieldOfView), aspect, zNear, zFar)
+            .perspective(org.joml.Math.toRadians(fieldOfView), aspect, zNear, zFar)
     }
 
     override fun getViewProjection(aspect: Float): Matrix4f {

@@ -17,10 +17,12 @@ class Raycast {
     ): Pair<Vector3f, Vector3f> {
         val ndcX = (2.0f * mouseX) / width - 1.0f
         val ndcY = 1.0f - (2.0f * mouseY) / height
-        val invViewProj = Matrix4f(projectionMatrix).mul(viewMatrix).invert()
 
         val near = Vector4f(ndcX, ndcY, -1f, 1f)
         val far  = Vector4f(ndcX, ndcY, 1f, 1f)
+
+        val viewProj = Matrix4f(projectionMatrix).mul(viewMatrix)
+        val invViewProj = viewProj.invert()
 
         invViewProj.transform(near)
         invViewProj.transform(far)
@@ -33,6 +35,7 @@ class Raycast {
 
         return origin to dir
     }
+
 
     fun intersectObject(rayOrigin: Vector3f, rayDir: Vector3f, obj: GameObject): Float? {
         val transform = obj.transform

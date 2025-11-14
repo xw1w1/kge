@@ -19,7 +19,7 @@ class ObjectInspectorWindow : EditorUIPanel("Inspector"), IRenderable {
                 EditorText.header("(No selection)")
             } else {
                 val selected = selection.getSelectedObjects().first()
-                EditorText.header(selected.name + " (${selected.displayType})")
+                EditorText.header("${selected.displayType} ${selected.name}")
                 ImGui.separator()
 
                 selected.components.forEach {
@@ -30,7 +30,5 @@ class ObjectInspectorWindow : EditorUIPanel("Inspector"), IRenderable {
         this.endUI()
     }
 
-    override fun pushRenderCallback(cb: IRenderCallback) {
-
-    }
+    override fun pushRenderCallback(cb: IRenderCallback) { }
 }

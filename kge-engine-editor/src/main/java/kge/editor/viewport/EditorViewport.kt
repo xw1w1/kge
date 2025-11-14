@@ -10,6 +10,7 @@ import kge.api.editor.imgui.IRenderCallback
 import kge.api.render.IPerspectiveViewCamera
 import kge.api.std.IRenderable
 import kge.editor.*
+import kge.editor.camera.EditorCamera
 import kge.editor.component.MeshRenderer
 import kge.editor.render.ShaderProgram
 import kge.editor.render.ViewportAxisRenderer
@@ -332,17 +333,26 @@ class EditorViewport : EditorUIPanel("Viewport"), IRenderable {
             if (isSelecting) {
                 performBoxSelection(viewportFramebuffer.frameWidth, viewportFramebuffer.frameHeight)
             } else if (potentialClick) {
-                handleSingleClick(rayOrigin, rayDir)
+                handleSingleClick(mouseX, mouseY)
             }
             isSelecting = false
             potentialClick = false
         }
     }
 
-    private fun handleSingleClick(rayOrigin: Vector3f, rayDir: Vector3f) {
-        var closest: Pair<Float, GameObject>? = null
+    private fun handleSingleClick(mouseX: Float, mouseY: Float) {
+        val camera = editorCamera ?: return
         val scene = EditorApplication.getInstance().getProjectManager().getCurrentScene() ?: return
 
+        val (rayOrigin, rayDir) = viewportRaycastManager.getMouseRay(
+            mouseX, mouseY,
+            viewportFramebuffer.frameWidth,
+            viewportFramebuffer.frameHeight,
+            camera.viewMatrix,
+            camera.projectionMatrix
+        )
+
+        var closest: Pair<Float, GameObject>? = null
         val selection = EditorApplication.getInstance().getEditorSelection()
         for (obj in scene.getAllObjects()) {
             val dist = viewportRaycastManager.intersectObject(rayOrigin, rayDir, obj)
