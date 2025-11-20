@@ -80,7 +80,6 @@ fun ITransform.moveTowards(target: Vector3f, speed: Float, deltaTime: Float): IT
     return moveTowards(step, target)
 }
 
-
 fun ITransform.reset(): ITransform {
     position.set(0f, 0f, 0f)
     rotation.identity()

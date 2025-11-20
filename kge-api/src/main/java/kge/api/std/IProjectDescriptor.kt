@@ -1,9 +1,9 @@
 package kge.api.std
 
+@Deprecated("")
 interface IProjectDescriptor {
     val name: String
     val version: String
-    var startupScene: IScene?
     val scenes: List<String>
     val assetsRoot: String
     val engineVersion: String

@@ -27,14 +27,20 @@ interface ITransform {
     var rotation: Quaternionf
     var scale: Vector3f
 
+    var localRotation: Quaternionf
+    var localPosition: Vector3f
+    var localScale: Vector3f
+
+    val up: Vector3f
+    val right: Vector3f
+    val forward: Vector3f
+
+    fun lookAt(target: Vector3f, up: Vector3f)
+
     fun getLocalMatrix(): Matrix4f {
         return Matrix4f()
             .translate(position)
             .rotate(rotation)
             .scale(scale)
     }
-
-    fun up(): Vector3f = rotation.transform(Vector3f(0f, 1f, 0f))
-    fun right(): Vector3f = rotation.transform(Vector3f(1f, 0f, 0f))
-    fun forward(): Vector3f = rotation.transform(Vector3f(0f, 0f, -1f))
 }

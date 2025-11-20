@@ -4,106 +4,75 @@ import imgui.ImGui
 import imgui.ImVec2
 import imgui.ImVec4
 import imgui.flag.ImGuiCol
-import imgui.flag.ImGuiDir
 
 class KgeEditorStyle {
     init {
         val style = ImGui.getStyle()
 
-        style.alpha = 1.0f
-        style.disabledAlpha = 1.0f
+        style.windowPadding = ImVec2(6f, 6f)
+        style.framePadding = ImVec2(6f, 3f)
+        style.itemSpacing = ImVec2(6f, 4f)
+        style.indentSpacing = 14f
 
-        style.windowPadding = ImVec2(12f, 12f)
-        style.windowRounding = 11.5f
-        style.windowBorderSize = 0f //TODO
-        style.windowMinSize = ImVec2(20f, 20f)
-        style.windowTitleAlign = ImVec2(0.5f, 0.5f)
-        style.windowMenuButtonPosition = ImGuiDir.Right
+        style.scrollbarSize = 12f
+        style.grabMinSize = 8f
 
-        style.childRounding = 0f
+        style.windowRounding = 2f
+        style.frameRounding = 2f
+        style.popupRounding = 2f
+        style.childRounding = 2f
+        style.grabRounding = 2f
+        style.scrollbarRounding = 3f
+
+        style.windowBorderSize = 1f
+        style.frameBorderSize = 1f
+        style.popupBorderSize = 1f
         style.childBorderSize = 1f
 
-        style.popupRounding = 0f
-        style.popupBorderSize = 1f
+        fun vCol(r: Float, g: Float, b: Float, a: Float = 1f) = ImVec4(r/255f, g/255f, b/255f, a)
 
-        style.framePadding = ImVec2(8.0f, 3.4f)
-        style.frameRounding = 5f
-        style.frameBorderSize = 0f
+        style.colors[ImGuiCol.Text]                  = vCol(204f, 204f, 204f)
+        style.colors[ImGuiCol.TextDisabled]          = vCol(107f, 107f, 107f)
 
-        style.itemSpacing = ImVec2(4.3f, 5.5f)
-        style.itemInnerSpacing = ImVec2(7f, 1.8f)
+        style.colors[ImGuiCol.WindowBg]              = vCol(43f, 43f, 43f)
+        style.colors[ImGuiCol.ChildBg]               = vCol(42f, 42f, 42f)
+        style.colors[ImGuiCol.PopupBg]               = vCol(44f, 44f, 44f)
 
-        style.cellPadding = ImVec2(9f, 9f)
-        style.indentSpacing = 0f
+        style.colors[ImGuiCol.Border]                = vCol(31f, 31f, 31f)
+        style.colors[ImGuiCol.BorderShadow]          = vCol(0f, 0f, 0f, 0f)
 
-        style.columnsMinSpacing = 4.9f
+        style.colors[ImGuiCol.FrameBg]               = vCol(58f, 58f, 58f)
+        style.colors[ImGuiCol.FrameBgHovered]        = vCol(71f, 71f, 71f)
+        style.colors[ImGuiCol.FrameBgActive]         = vCol(81f, 81f, 81f)
 
-        style.scrollbarSize = 11.6f
-        style.scrollbarRounding = 15.9f
+        style.colors[ImGuiCol.Button]                = vCol(60f, 60f, 60f)
+        style.colors[ImGuiCol.ButtonHovered]         = vCol(75f, 75f, 75f)
+        style.colors[ImGuiCol.ButtonActive]          = vCol(50f, 50f, 50f)
 
-        style.grabMinSize = 3.7f
-        style.grabRounding = 20f
+        style.colors[ImGuiCol.Header]                = vCol(70f, 70f, 70f)
+        style.colors[ImGuiCol.HeaderHovered]         = vCol(85f, 85f, 85f)
+        style.colors[ImGuiCol.HeaderActive]          = vCol(95f, 95f, 95f)
 
-        style.tabRounding = 0f
-        style.tabBorderSize = 0f
-        style.tabMinWidthForCloseButton = 0f
+        style.colors[ImGuiCol.TitleBg]               = vCol(36f, 36f, 36f)
+        style.colors[ImGuiCol.TitleBgActive]         = vCol(44f, 44f, 44f)
+        style.colors[ImGuiCol.TitleBgCollapsed]      = vCol(30f, 30f, 30f)
 
-        style.colorButtonPosition = ImGuiDir.Right
-        style.buttonTextAlign = ImVec2(0.5f, 0.5f)
-        style.selectableTextAlign = ImVec2(0.5f, 0.5f)
+        style.colors[ImGuiCol.CheckMark]             = vCol(74f, 163f, 255f)
+        style.colors[ImGuiCol.SliderGrab]            = vCol(74f, 163f, 255f)
+        style.colors[ImGuiCol.SliderGrabActive]      = vCol(74f, 163f, 255f)
 
-        style.colors[ImGuiCol.Text]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f)
-        style.colors[ImGuiCol.TextDisabled]      = ImVec4(0.27f, 0.32f, 0.45f, 1.00f)
-        style.colors[ImGuiCol.WindowBg]          = ImVec4(0.08f, 0.09f, 0.10f, 1.00f)
-        style.colors[ImGuiCol.ChildBg]           = ImVec4(0.09f, 0.10f, 0.12f, 1.00f)
-        style.colors[ImGuiCol.PopupBg]           = ImVec4(0.08f, 0.09f, 0.10f, 1.00f)
-        style.colors[ImGuiCol.Border]            = ImVec4(0.16f, 0.17f, 0.19f, 1.00f)
-        style.colors[ImGuiCol.BorderShadow]      = ImVec4(0.08f, 0.09f, 0.10f, 1.00f)
-        style.colors[ImGuiCol.FrameBg]           = ImVec4(0.11f, 0.13f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.FrameBgHovered]    = ImVec4(0.16f, 0.17f, 0.19f, 1.00f)
-        style.colors[ImGuiCol.FrameBgActive]     = ImVec4(0.16f, 0.17f, 0.19f, 1.00f)
-        style.colors[ImGuiCol.TitleBg]           = ImVec4(0.05f, 0.06f, 0.07f, 1.00f)
-        style.colors[ImGuiCol.TitleBgActive]     = ImVec4(0.05f, 0.06f, 0.07f, 1.00f)
-        style.colors[ImGuiCol.TitleBgCollapsed]  = ImVec4(0.08f, 0.09f, 0.10f, 1.00f)
-        style.colors[ImGuiCol.MenuBarBg]         = ImVec4(0.10f, 0.11f, 0.12f, 1.00f)
-        style.colors[ImGuiCol.ScrollbarBg]       = ImVec4(0.05f, 0.06f, 0.07f, 1.00f)
-        style.colors[ImGuiCol.ScrollbarGrab]     = ImVec4(0.12f, 0.13f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.ScrollbarGrabHovered]= ImVec4(0.16f, 0.17f, 0.19f, 1.00f)
-        style.colors[ImGuiCol.ScrollbarGrabActive] = ImVec4(0.12f, 0.13f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.CheckMark]         = ImVec4(0.97f, 1.00f, 0.50f, 1.00f)
-        style.colors[ImGuiCol.SliderGrab]        = ImVec4(0.97f, 1.00f, 0.50f, 1.00f)
-        style.colors[ImGuiCol.SliderGrabActive]  = ImVec4(1.00f, 0.80f, 0.50f, 1.00f)
-        style.colors[ImGuiCol.Button]            = ImVec4(0.12f, 0.13f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.ButtonHovered]     = ImVec4(0.18f, 0.19f, 0.20f, 1.00f)
-        style.colors[ImGuiCol.ButtonActive]      = ImVec4(0.15f, 0.15f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.Header]            = ImVec4(0.14f, 0.16f, 0.21f, 1.00f)
-        style.colors[ImGuiCol.HeaderHovered]     = ImVec4(0.11f, 0.11f, 0.11f, 1.00f)
-        style.colors[ImGuiCol.HeaderActive]      = ImVec4(0.08f, 0.09f, 0.10f, 1.00f)
-        style.colors[ImGuiCol.Separator]         = ImVec4(0.13f, 0.15f, 0.19f, 1.00f)
-        style.colors[ImGuiCol.SeparatorHovered]  = ImVec4(0.16f, 0.18f, 0.25f, 1.00f)
-        style.colors[ImGuiCol.SeparatorActive]   = ImVec4(0.16f, 0.18f, 0.25f, 1.00f)
-        style.colors[ImGuiCol.ResizeGrip]        = ImVec4(0.15f, 0.15f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.ResizeGripHovered] = ImVec4(0.97f, 1.00f, 0.50f, 1.00f)
-        style.colors[ImGuiCol.ResizeGripActive]  = ImVec4(1.00f, 1.00f, 1.00f, 1.00f)
-        style.colors[ImGuiCol.Tab]               = ImVec4(0.08f, 0.09f, 0.10f, 1.00f)
-        style.colors[ImGuiCol.TabHovered]        = ImVec4(0.12f, 0.13f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.TabActive]         = ImVec4(0.12f, 0.13f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.TabUnfocused]      = ImVec4(0.08f, 0.09f, 0.10f, 1.00f)
-        style.colors[ImGuiCol.TabUnfocusedActive] = ImVec4(0.12f, 0.27f, 0.57f, 1.00f)
-        style.colors[ImGuiCol.PlotLines]         = ImVec4(0.52f, 0.60f, 0.70f, 1.00f)
-        style.colors[ImGuiCol.PlotLinesHovered]  = ImVec4(0.04f, 0.98f, 0.98f, 1.00f)
-        style.colors[ImGuiCol.PlotHistogram]     = ImVec4(0.88f, 0.79f, 0.56f, 1.00f)
-        style.colors[ImGuiCol.PlotHistogramHovered] = ImVec4(0.96f, 0.96f, 0.96f, 1.00f)
-        style.colors[ImGuiCol.TableHeaderBg]     = ImVec4(0.05f, 0.06f, 0.07f, 1.00f)
-        style.colors[ImGuiCol.TableBorderStrong] = ImVec4(0.05f, 0.06f, 0.07f, 1.00f)
-        style.colors[ImGuiCol.TableBorderLight]  = ImVec4(0.00f, 0.00f, 0.00f, 1.00f)
-        style.colors[ImGuiCol.TableRowBg]       = ImVec4(0.12f, 0.13f, 0.15f, 1.00f)
-        style.colors[ImGuiCol.TableRowBgAlt]    = ImVec4(0.10f, 0.11f, 0.12f, 1.00f)
-        style.colors[ImGuiCol.TextSelectedBg]    = ImVec4(0.94f, 0.94f, 0.94f, 1.00f)
-        style.colors[ImGuiCol.DragDropTarget]    = ImVec4(0.50f, 0.51f, 1.00f, 1.00f)
-        style.colors[ImGuiCol.NavHighlight]      = ImVec4(0.27f, 0.29f, 1.00f, 1.00f)
-        style.colors[ImGuiCol.NavWindowingHighlight] = ImVec4(0.50f, 0.51f, 1.00f, 1.00f)
-        style.colors[ImGuiCol.NavWindowingDimBg] = ImVec4(0.20f, 0.18f, 0.55f, 0.50f)
-        style.colors[ImGuiCol.ModalWindowDimBg]  = ImVec4(0.20f, 0.18f, 0.55f, 0.50f)
+        style.colors[ImGuiCol.ResizeGrip]            = vCol(50f, 50f, 50f)
+        style.colors[ImGuiCol.ResizeGripHovered]     = vCol(65f, 65f, 65f)
+        style.colors[ImGuiCol.ResizeGripActive]      = vCol(80f, 80f, 80f)
+
+        style.colors[ImGuiCol.TableHeaderBg]         = vCol(43f, 43f, 43f)
+        style.colors[ImGuiCol.TableRowBg]            = vCol(46f, 46f, 46f)
+        style.colors[ImGuiCol.TableRowBgAlt]         = vCol(50f, 50f, 50f)
+        style.colors[ImGuiCol.TextSelectedBg]        = vCol(61f, 79f, 102f)
+
+        style.colors[ImGuiCol.DragDropTarget]        = vCol(74f, 163f, 255f)
+
+        style.colors[ImGuiCol.NavHighlight]          = vCol(74f, 163f, 255f)
     }
 }
+

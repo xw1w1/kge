@@ -41,9 +41,6 @@ import org.joml.Vector3f
  * providing a consistent abstraction over camera data and transformation logic.
  */
 interface ICamera {
-    var position: Vector3f
-    var rotation: Quaternionf
-
     val viewMatrix: Matrix4f
     val projectionMatrix: Matrix4f
 

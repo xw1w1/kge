@@ -1,18 +1,32 @@
 package kge.editor.component
 
-import kge.api.editor.IEditorComponent
+import kge.editor.core.GameObject
 
 open class Component(
-    override val displayTypeName: String
-) : IEditorComponent {
+    val gameObject: GameObject
+) {
+    var active: Boolean = true
+    open var shouldBeVisibleInInspector: Boolean = true
 
-    open var enabled: Boolean = true
+    open val typeName: String = "Component"
 
     open fun onAwake() {}
 
-    open fun onUpdate(deltaTime: Float) {}
+    open fun onUpdate() {}
 
-    override fun onInspectorUI() {}
+    inline fun <reified T : Component> addComponent() {
+        this.gameObject.addComponent<T>()
+    }
 
-    override fun toString(): String = displayTypeName
+    inline fun <reified T : Component> getComponent(): T? {
+        return this.gameObject.getComponent<T>()
+    }
+
+    inline fun <reified T : Component> getComponents(): MutableList<T> {
+        return this.gameObject.getComponentsOfType()
+    }
+
+    inline fun <reified T : Component> removeComponent() {
+        this.gameObject.removeComponent<T>()
+    }
 }

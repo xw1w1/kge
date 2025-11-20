@@ -6,12 +6,13 @@ import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import kge.api.editor.imgui.IRenderCallback
 import kge.api.std.IRenderable
-import kge.editor.ui.dragndrop.EditorDragManager
 import kge.editor.EditorWindow
 import kge.editor.ui.window.ConsoleOutputWindow
 import kge.editor.ui.window.EditorCameraSettingsWindow
+import kge.editor.ui.window.EditorProjectFilesWindow
 import kge.editor.ui.window.ObjectInspectorWindow
 import kge.editor.ui.window.SceneHierarchyWindow
+import kge.ui.toolkit.dragndrop.EditorDragManager
 
 class EditorApplicationUI : IRenderable {
     private val imGuiGl3 = ImGuiImplGl3()
@@ -25,6 +26,7 @@ class EditorApplicationUI : IRenderable {
     private val inspectorPanel: ObjectInspectorWindow = ObjectInspectorWindow()
     private val consoleOutputPanel: ConsoleOutputWindow = ConsoleOutputWindow()
     private val editorCameraPanel: EditorCameraSettingsWindow = EditorCameraSettingsWindow()
+    private val projectFilesPanel: EditorProjectFilesWindow = EditorProjectFilesWindow()
 
     fun createImGuiContext(window: EditorWindow) {
         ImGui.createContext()
@@ -70,6 +72,10 @@ class EditorApplicationUI : IRenderable {
 
     fun getEditorCameraPanel(): EditorCameraSettingsWindow {
         return editorCameraPanel
+    }
+
+    fun getEditorProjectFilesPanel(): EditorProjectFilesWindow {
+        return projectFilesPanel
     }
 
     override fun render(delta: Float) {

@@ -8,8 +8,8 @@ import kge.editor.input.GLFWMouse
 import kge.editor.project.EditorProjectManager
 import kge.editor.render.DefaultEditorRenderPipeline
 import kge.editor.ui.EditorApplicationUI
-import kge.editor.viewport.EditorViewport
-import kge.editor.ui.EditorFont
+import kge.editor.viewport.ViewportWindow
+import kge.ui.toolkit.EditorFont
 import org.lwjgl.glfw.GLFW
 
 class EditorApplication {
@@ -17,7 +17,7 @@ class EditorApplication {
         1280, 720
     )
 
-    private val editorViewport: EditorViewport = EditorViewport()
+    private val editorViewport: ViewportWindow = ViewportWindow()
     private val editorApplicationUI: EditorApplicationUI = EditorApplicationUI()
     private val editorRenderPipeline: DefaultEditorRenderPipeline = DefaultEditorRenderPipeline()
     private val editorSelectionManager: EditorSelection = EditorSelection()
@@ -86,12 +86,15 @@ class EditorApplication {
             editorApplicationUI.newFrame()
 
             val dockspace = editorApplicationUI.getEditorDockspace()
+            projectManager.getCurrentScene()?.onUpdate(_delta)
+
             dockspace.beginUI()
             editorApplicationUI.getEditorMenuBar().render(_delta)
             editorApplicationUI.getHierarchyPanel().render(_delta)
             editorApplicationUI.getInspectorPanel().render(_delta)
             editorApplicationUI.getConsoleOutputPanel().render(_delta)
             editorApplicationUI.getEditorCameraPanel().render(_delta)
+            editorApplicationUI.getEditorProjectFilesPanel().render(_delta)
             editorViewport.render(_delta)
             dockspace.endUI()
 

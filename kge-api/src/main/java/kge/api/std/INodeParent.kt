@@ -1,17 +1,18 @@
 package kge.api.std
 
-interface INodeParent : INode {
-    val children: List<INode>
+@Deprecated("")
+interface INodeParent<N> : INode<N> {
+    val children: List<N>
 
-    fun addChild(child: INode)
+    fun addChild(child: N)
 
-    fun removeChild(child: INode)
+    fun removeChild(child: N)
 
     fun clearChildren()
 
-    fun hasChild(node: INode): Boolean
+    fun hasChild(node: N): Boolean
 
-    fun findChildByName(name: String): INode?
+    fun findChildByName(name: String): N?
 
-    fun forEachChildRecursive(action: (INode) -> Unit)
+    fun forEachChildRecursive(action: (N) -> Unit)
 }

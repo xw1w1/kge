@@ -45,15 +45,8 @@ class GLFWInputSystem : IInputSystem {
 
     fun registered(): Boolean = registered
 
-    // region Mappings
-    // маппинги кнопок. свободные слоты зарезервированы под прошлые значения
-
-    // маппинг кнопок мыши
-    // right  left  wheel
-    // 0      1     2
     private val mouse: BooleanArray = BooleanArray(5)
 
-    // маппинг позиций мыши
     //                                           x, y, scroll, dx, dy
     // 0      1      2           3       4       5  6  7       8   9
     val MOUSE_X: Int = 5
@@ -63,7 +56,6 @@ class GLFWInputSystem : IInputSystem {
     val MOUSE_DY: Int = 9
     private val mousePos: DoubleArray = DoubleArray(24)
 
-    // ну тут я хз даже, возможно разделить левую половину массива на prevStates а правую на current
     private val keyboard: BooleanArray = BooleanArray(1024)
 
     // endregion

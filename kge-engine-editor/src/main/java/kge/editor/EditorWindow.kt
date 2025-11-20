@@ -5,6 +5,7 @@ import kge.api.std.KGEWindowFlags
 import org.joml.Vector2i
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import kotlin.IntArray
@@ -15,7 +16,7 @@ class EditorWindow(private val width: Int, private val height: Int) : IGLWindow 
     override var title: String? = "KGE Editor"
         set(value) {
             field = value
-            GLFW.glfwSetWindowTitle(windowHandle, value ?: "KGE")
+            GLFW.glfwSetWindowTitle(windowHandle, field ?: "KGE Editor")
         }
 
     override fun init() {

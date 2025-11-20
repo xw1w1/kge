@@ -1,16 +1,12 @@
 package kge.api.std
 
-interface INode {
+@Deprecated("")
+interface INode<N> {
     val nodeId: Int
 
     var name: String
 
     var isActive: Boolean
 
-    var parent: INodeParent?
-
-    val displayType: String
-
-    val isActiveInHierarchy: Boolean
-        get() = isActive && (parent?.isActiveInHierarchy ?: true)
+    var parent: N?
 }

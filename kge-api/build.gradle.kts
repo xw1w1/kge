@@ -13,6 +13,7 @@ val imguiVersion: String by rootProject.extra
 dependencies {
     implementation(kotlin("stdlib"))
 
+    api(project(":kge-ui-toolkit"))
     api("org.joml:joml:$jomlVersion")
 
     api("org.lwjgl:lwjgl:$lwjglVersion")

@@ -1,7 +1,6 @@
 package kge.editor.project
 
 import kge.editor.EditorApplication
-import java.io.File
 
 class EditorProjectManager {
     private var _project: EditorProject? = null
@@ -10,7 +9,7 @@ class EditorProjectManager {
         return _project
     }
 
-    fun getCurrentScene(): EditorSceneImpl? {
+    fun getCurrentScene(): Scene? {
         return _project?.getCurrentScene()
     }
 

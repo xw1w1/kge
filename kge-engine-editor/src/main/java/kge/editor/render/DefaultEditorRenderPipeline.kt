@@ -1,18 +1,12 @@
 package kge.editor.render
 
-import kge.api.render.ICamera
 import kge.api.render.IRenderPipeline
-import kge.api.std.IScene
 import kge.editor.GLMesh
 import org.joml.Matrix4f
 import org.joml.Vector3f
 
 class DefaultEditorRenderPipeline : IRenderPipeline {
     override fun initialize() {
-        TODO("Not yet implemented")
-    }
-
-    override fun render(scene: IScene, camera: ICamera) {
         TODO("Not yet implemented")
     }
 

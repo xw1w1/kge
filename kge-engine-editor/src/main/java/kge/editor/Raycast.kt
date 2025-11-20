@@ -1,6 +1,7 @@
 package kge.editor
 
 import kge.editor.component.MeshRenderer
+import kge.editor.core.GameObject
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -8,7 +9,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class Raycast {
+object Raycast {
     fun getMouseRay(
         mouseX: Float, mouseY: Float,
         width: Int, height: Int,
@@ -39,9 +40,9 @@ class Raycast {
 
     fun intersectObject(rayOrigin: Vector3f, rayDir: Vector3f, obj: GameObject): Float? {
         val transform = obj.transform
-        val renderer = obj.get<MeshRenderer>() ?: return null
+        val renderer = obj.getComponent<MeshRenderer>() ?: return null
 
-        val model = transform.getWorldMatrix(obj)
+        val model = transform.getWorldMatrix()
 
         val localMin = renderer.mesh.boundsMin
         val localMax = renderer.mesh.boundsMax
@@ -74,7 +75,7 @@ class Raycast {
         return intersectRayAABB(rayOrigin, rayDir, worldMin, worldMax)
     }
 
-    private fun intersectRayAABB(rayOrigin: Vector3f, rayDir: Vector3f, min: Vector3f, max: Vector3f): Float? {
+    fun intersectRayAABB(rayOrigin: Vector3f, rayDir: Vector3f, min: Vector3f, max: Vector3f): Float? {
         var tMin = Float.NEGATIVE_INFINITY
         var tMax = Float.POSITIVE_INFINITY
 

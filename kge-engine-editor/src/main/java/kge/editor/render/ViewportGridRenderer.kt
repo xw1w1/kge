@@ -33,7 +33,7 @@ class ViewportGridRenderer {
             vertices.addAll(listOf(x, 0f, size.toFloat(), *color.toTypedArray()))
         }
 
-        mesh = GLMesh.create(vertices.toFloatArray(), strideFloats = 6, drawMode = GL11.GL_LINES)
+        mesh = GLMesh.create(vertices.toFloatArray(), vertexAttributes = GLMesh.VertexAttributes.POSITION_COLOR, drawMode = GL11.GL_LINES)
         initialized = true
     }
 

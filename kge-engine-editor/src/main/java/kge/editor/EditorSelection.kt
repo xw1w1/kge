@@ -1,5 +1,7 @@
 package kge.editor
 
+import kge.editor.core.GameObject
+
 class EditorSelection {
     private val selectedObjects: LinkedHashSet<GameObject> = LinkedHashSet()
 
@@ -19,10 +21,17 @@ class EditorSelection {
         selectedObjects.clear()
     }
 
-    fun getSelectedObjects(): Set<GameObject> = selectedObjects.toSet()
+    fun getSelectedObjects(): MutableSet<GameObject> = selectedObjects.toMutableSet()
 
     private fun <T> MutableSet<T>.set(value: T) {
         this.clear()
         this.add(value)
     }
+}
+
+fun <T> MutableSet<T>.exclude(value: T): MutableSet<T> {
+    val set = mutableSetOf<T>()
+    set.addAll(this)
+    set.remove(value)
+    return set
 }

@@ -2,15 +2,28 @@ package kge.editor
 
 import kge.editor.render.ShaderProgram
 import org.joml.Vector3f
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.GL_LINEAR
+import org.lwjgl.opengl.GL11.GL_RGBA
+import org.lwjgl.opengl.GL11.GL_RGBA8
+import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
+import org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER
+import org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER
+import org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL11.glBindTexture
+import org.lwjgl.opengl.GL11.glGenTextures
+import org.lwjgl.opengl.GL11.glTexImage2D
+import org.lwjgl.opengl.GL11.glTexParameteri
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import org.lwjgl.system.MemoryUtil
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
+import java.nio.ByteBuffer
+import javax.imageio.ImageIO
 
 object ResourceLoader {
     fun loadShader(vertexPath: String, fragmentPath: String): ShaderProgram {
@@ -29,6 +42,7 @@ object ResourceLoader {
             ?: throw IllegalArgumentException("Resource not found: $path")
 
         val reader = BufferedReader(InputStreamReader(stream))
+        var attributesType: String? = null
         var mode = "TRIANGLES"
         val vertices = mutableListOf<Float>()
         val indices = mutableListOf<Int>()
@@ -38,8 +52,14 @@ object ResourceLoader {
 
         reader.forEachLine { raw ->
             val line = raw.trim()
-            if (line.isEmpty() || line.startsWith("#")) return@forEachLine
+            if (line.isEmpty()) return@forEachLine
 
+            if (line.startsWith("#ATTRIBUTES")) {
+                attributesType = line.substringAfter("#ATTRIBUTES").trim()
+                return@forEachLine
+            }
+
+            if (line.startsWith("#")) return@forEachLine
             when {
                 line.equals("LINES", ignoreCase = true) -> {
                     mode = "LINES"
@@ -79,8 +99,6 @@ object ResourceLoader {
             else -> 3
         }
 
-        val strideBytes = strideFloats * Float.SIZE_BYTES
-
         val boundsMin = Vector3f(Float.POSITIVE_INFINITY)
         val boundsMax = Vector3f(Float.NEGATIVE_INFINITY)
         for (i in vertices.indices step strideFloats) {
@@ -95,49 +113,56 @@ object ResourceLoader {
             if (z > boundsMax.z) boundsMax.z = z
         }
 
-        // === Создаём и заполняем буферы ===
-        val vao = GL30.glGenVertexArrays()
-        GL30.glBindVertexArray(vao)
-
-        val vbo = GL15.glGenBuffers()
-        val vertexBuffer = MemoryUtil.memAllocFloat(vertices.size)
-        vertexBuffer.put(vertices.toFloatArray()).flip()
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_STATIC_DRAW)
-
-        GL20.glEnableVertexAttribArray(0)
-        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, strideBytes, 0L)
-
-        if (strideFloats >= 6) {
-            GL20.glEnableVertexAttribArray(1)
-            GL20.glVertexAttribPointer(1, 3, GL11.GL_FLOAT, false, strideBytes, (3 * Float.SIZE_BYTES).toLong())
+        val vertexAttributes = when (attributesType) {
+            "POSITION_NORMAL" -> GLMesh.VertexAttributes.POSITION_NORMAL
+            "POSITION_COLOR" -> GLMesh.VertexAttributes.POSITION_COLOR
+            "POSITION_NORMAL_UV" -> GLMesh.VertexAttributes.POSITION_NORMAL_UV
+            "POSITION_UV" -> GLMesh.VertexAttributes.POSITION_UV
+            else -> {
+                when (strideFloats) {
+                    6 -> GLMesh.VertexAttributes.POSITION_NORMAL
+                    3 -> GLMesh.VertexAttributes.POSITION
+                    8 -> GLMesh.VertexAttributes.POSITION_NORMAL_UV
+                    5 -> GLMesh.VertexAttributes.POSITION_UV
+                    else -> GLMesh.VertexAttributes.POSITION
+                }
+            }
         }
 
-        var ebo = 0
-        if (indices.isNotEmpty()) {
-            ebo = GL15.glGenBuffers()
-            val indexBuffer = MemoryUtil.memAllocInt(indices.size)
-            indexBuffer.put(indices.toIntArray()).flip()
-            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ebo)
-            GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW)
-            MemoryUtil.memFree(indexBuffer)
-        }
-
-        GL30.glBindVertexArray(0)
-        MemoryUtil.memFree(vertexBuffer)
-
-        return GLMesh(
+        return GLMesh.create(
             vertices = vertices.toFloatArray(),
+            vertexAttributes = vertexAttributes,
             indices = if (indices.isEmpty()) null else indices.toIntArray(),
-            drawMode = if (mode.equals("LINES", ignoreCase = true)) GL11.GL_LINES else GL11.GL_TRIANGLES,
-            boundsMin = boundsMin,
-            boundsMax = boundsMax
-        ).apply {
-            this.vao = vao
-            this.vbo = vbo
-            this.ebo = ebo
-            this.uploaded = true
+            drawMode = if (mode.equals("LINES", ignoreCase = true)) GL11.GL_LINES else GL11.GL_TRIANGLES
+        )
+    }
+
+    fun loadTextureID(path: String): Int {
+        val stream = javaClass.classLoader.getResourceAsStream(path)
+            ?: throw IllegalArgumentException("Resource not found: $path")
+
+        val image = ImageIO.read(stream)
+        val w = image.width
+        val h = image.height
+        val pixels = IntArray(w * h)
+        image.getRGB(0, 0, w, h, pixels, 0, w)
+
+        val buffer = BufferUtils.createByteBuffer(w * h * 4)
+        for (p in pixels) {
+            buffer.put(((p shr 16) and 0xFF).toByte())
+            buffer.put(((p shr 8) and 0xFF).toByte())
+            buffer.put((p and 0xFF).toByte())
+            buffer.put(((p shr 24) and 0xFF).toByte())
         }
+        buffer.flip()
+
+        val id = glGenTextures()
+        glBindTexture(GL_TEXTURE_2D, id)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+
+        return id
     }
 
     private fun readTextResource(path: String): String {

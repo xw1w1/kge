@@ -1,47 +1,40 @@
 package kge.editor.project
 
-import kge.api.std.IProjectDescriptor
-import kge.api.std.IScene
 import kge.editor.EditorApplication
 
 class EditorProject(
-    override var name: String,
-    override val version: String,
+    var name: String,
+    val version: String,
 
     private val projectMeta: MutableMap<String, String>
-) : IProjectDescriptor {
-    override val scenes: List<String> = emptyList()
-    override var startupScene: IScene? = null // post-load change only
+)  {
+    val scenes: List<String> = emptyList()
+    var startupScene: Scene? = null // post-load change only
 
-    private var _currentScene: IScene? = startupScene // null if startup scene == null
-    private val _loadedKnownScenes: MutableList<EditorSceneImpl> = mutableListOf()
+    private var _currentScene: Scene? = startupScene // null if startup scene == null
+    private val _loadedKnownScenes: MutableList<Scene> = mutableListOf()
 
-    override val assetsRoot: String = projectMeta["assetsRoot"]!!
-    override val engineVersion: String = projectMeta["engineVersion"]!!
-    override var description: String? = projectMeta["description"]
+    val assetsRoot: String = projectMeta["assetsRoot"]!!
+    val engineVersion: String = projectMeta["engineVersion"]!!
+    var description: String? = projectMeta["description"]
 
-    override fun onProjectLoad() {
+    fun onProjectLoad() {
         _currentScene?.onLoad()
 
         if (_currentScene == null) {
-            val scene = EditorSceneImpl("untitled", "Untitled Scene")
-            scene.onLoad()
+            val scene = Scene("untitled", "Untitled Scene")
 
-            _loadedKnownScenes.add(scene)
-
-            _currentScene = scene
+            this.openScene(scene)
         }
-
-        EditorApplication.getInstance().setTitle(this.name)
     }
 
-    override fun onProjectUnload() { }
+    fun onProjectUnload() { }
 
-    fun getCurrentScene(): EditorSceneImpl? {
-        return _currentScene as? EditorSceneImpl?
+    fun getCurrentScene(): Scene? {
+        return _currentScene
     }
 
-    fun openScene(scene: EditorSceneImpl) {
+    fun openScene(scene: Scene) {
         if (_currentScene == scene) return
 
         if (scenes.contains(scene.id)) {
@@ -52,10 +45,11 @@ class EditorProject(
         }
 
         if (!_loadedKnownScenes.contains(scene)) {
-            scene.onLoad(scene)
-
             _loadedKnownScenes.add(scene)
             _currentScene = scene
+
+            scene.onLoad(scene)
+            EditorApplication.getInstance().setTitle(scene.displayName ?: "Untitled")
             return
         }
     }

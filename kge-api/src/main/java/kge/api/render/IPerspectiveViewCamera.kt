@@ -34,6 +34,9 @@ import org.joml.Vector2f
  * providing a consistent abstraction over camera data and transformation logic.
  */
 interface IPerspectiveViewCamera : ICamera {
+    val fieldOfView: Float
+        get() = 60f
+
     private val clipPlanesRange: Vector2f
         get() = Vector2f(0.001f, 1000f)
 
