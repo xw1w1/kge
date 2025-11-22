@@ -10,7 +10,7 @@ class MeshRenderer(
     node: GameObject,
     var mesh: IGLMesh = Primitives.cube()
 ) : Component(node) {
-    @SerializeField("Render Mesh")
+    @SerializeField("Render")
     var renderEnabled: Boolean by boolField(true)
 
     override val typeName: String = "Mesh Renderer"

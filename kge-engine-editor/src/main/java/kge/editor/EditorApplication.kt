@@ -9,7 +9,7 @@ import kge.editor.project.EditorProjectManager
 import kge.editor.render.DefaultEditorRenderPipeline
 import kge.editor.ui.EditorApplicationUI
 import kge.editor.viewport.ViewportWindow
-import kge.ui.toolkit.EditorFont
+import kge.ui.toolkit.UIFont
 import org.lwjgl.glfw.GLFW
 
 class EditorApplication {
@@ -40,7 +40,7 @@ class EditorApplication {
         mouse = GLFWMouse(inputSystem)
 
         editorApplicationUI.createImGuiContext(window)
-        EditorFont.load(ImGui.getIO())
+        UIFont.load(ImGui.getIO())
 
         editorApplicationUI.attach(editorViewport)
         editorViewport.init()

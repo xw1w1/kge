@@ -5,7 +5,7 @@ import imgui.flag.ImGuiTreeNodeFlags
 import imgui.flag.ImGuiWindowFlags
 import kge.api.editor.imgui.UIRenderable
 import kge.editor.component.Component
-import kge.ui.toolkit.EditorFont
+import kge.ui.toolkit.UIFont
 import kge.ui.toolkit.delegates.EditorFieldDelegate
 import kge.ui.toolkit.delegates.SerializeField
 import kotlin.reflect.KProperty1
@@ -60,7 +60,10 @@ open class EditorUIPanel(var title: String) : UIRenderable {
         ImGui.dummy(0f, 2f)
 
         ImGui.setWindowFontScale(0.9f)
-        ImGui.pushFont(EditorFont.semiBold)
+        ImGui.pushFont(UIFont.semiBold)
+
+        val cursorPos = ImGui.getCursorPos()
+        ImGui.separator()
 
         val isOpen = ImGui.treeNodeEx(
             "${component.typeName}##${System.identityHashCode(component)}",
@@ -75,11 +78,14 @@ open class EditorUIPanel(var title: String) : UIRenderable {
             return
         }
 
+        ImGui.setCursorPosX(cursorPos.x)
         ImGui.separator()
 
         drawInspector(component)
 
+        ImGui.setCursorPosX(cursorPos.x)
         ImGui.separator()
+
         ImGui.treePop()
     }
 
@@ -88,10 +94,11 @@ open class EditorUIPanel(var title: String) : UIRenderable {
                 ImGuiTreeNodeFlags.FramePadding or
                 ImGuiTreeNodeFlags.SpanAvailWidth
 
-        ImGui.dummy(0f, 2f)
-
         ImGui.setWindowFontScale(0.9f)
-        ImGui.pushFont(EditorFont.semiBold)
+        ImGui.pushFont(UIFont.semiBold)
+
+        val cursorPos = ImGui.getCursorPos()
+        ImGui.separator()
 
         val isOpen = ImGui.treeNodeEx(
             "${title}##${System.identityHashCode(container)}",
@@ -106,9 +113,14 @@ open class EditorUIPanel(var title: String) : UIRenderable {
             return
         }
 
+        ImGui.setCursorPosX(cursorPos.x)
+        ImGui.separator()
+
         drawInspector(container)
 
+        ImGui.setCursorPosX(cursorPos.x)
         ImGui.separator()
+
         ImGui.treePop()
     }
 

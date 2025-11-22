@@ -9,7 +9,7 @@ import kge.api.editor.imgui.IRenderCallback
 import kge.api.std.IRenderable
 import kge.editor.*
 import kge.editor.core.GameObject
-import kge.ui.toolkit.EditorText
+import kge.ui.toolkit.UIText
 import kge.editor.ui.EditorUIPanel
 import kge.editor.ui.UIIcon
 import kge.ui.toolkit.dragndrop.EditorDragManager
@@ -58,7 +58,7 @@ class SceneHierarchyWindow : EditorUIPanel("Hierarchy"), IRenderable {
                     }
                 }
             } else {
-                EditorText.header("(No active scene)")
+                UIText.header("(No active scene)")
             }
         }
         endUI()
@@ -172,9 +172,9 @@ class SceneHierarchyWindow : EditorUIPanel("Hierarchy"), IRenderable {
             val dl = ImGui.getWindowDrawList()
             dl.addRect(
                 nodeAreaMin.x,
-                nodeAreaMin.y - 2.5f,
+                nodeAreaMin.y - ImGui.getStyle().itemSpacingY,
                 nodeAreaMax.x,
-                nodeAreaMax.y - 2.5f,
+                nodeAreaMax.y - ImGui.getStyle().itemSpacingY,
                 ImGui.getColorU32(1f, 1f, 0f, 1f),
                 2f
             )

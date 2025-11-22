@@ -1,28 +1,14 @@
 package kge.editor
 
+import imgui.ImGui
 import kge.editor.render.ShaderProgram
+import kge.ui.toolkit.UIFont
 import org.joml.Vector3f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.GL_LINEAR
-import org.lwjgl.opengl.GL11.GL_RGBA
-import org.lwjgl.opengl.GL11.GL_RGBA8
-import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
-import org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER
-import org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER
-import org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE
-import org.lwjgl.opengl.GL11.glBindTexture
-import org.lwjgl.opengl.GL11.glGenTextures
-import org.lwjgl.opengl.GL11.glTexImage2D
-import org.lwjgl.opengl.GL11.glTexParameteri
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30
-import org.lwjgl.system.MemoryUtil
+import org.lwjgl.opengl.GL11.*
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStreamReader
-import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
 object ResourceLoader {
@@ -137,6 +123,10 @@ object ResourceLoader {
         )
     }
 
+    fun loadFont(path: String, weight: UIFont.Weight, size: Float) {
+        UIFont.loadFont("JetBrainsMono", weight, this.readBytes(path), size, ImGui.getIO())
+    }
+
     fun loadTextureID(path: String): Int {
         val stream = javaClass.classLoader.getResourceAsStream(path)
             ?: throw IllegalArgumentException("Resource not found: $path")
@@ -169,5 +159,11 @@ object ResourceLoader {
         val stream = javaClass.classLoader.getResourceAsStream(path)
             ?: throw IllegalArgumentException("Resource not found in path $path")
         return stream.bufferedReader().use { it.readText() }
+    }
+
+    private fun readBytes(path: String): ByteArray {
+        val stream = javaClass.classLoader.getResourceAsStream(path)
+            ?: throw IllegalArgumentException("Resource not found in path $path")
+        return stream.readAllBytes()
     }
 }

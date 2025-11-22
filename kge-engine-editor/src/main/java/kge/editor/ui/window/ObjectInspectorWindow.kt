@@ -7,38 +7,45 @@ import kge.api.editor.imgui.IRenderCallback
 import kge.api.std.IRenderable
 import kge.editor.EditorApplication
 import kge.editor.core.GameObject
-import kge.ui.toolkit.EditorText
+import kge.ui.toolkit.UIText
 import kge.editor.ui.EditorUIPanel
 import kge.editor.ui.UIIcon
 import kge.editor.viewport.ViewportGizmoManager
+import kge.ui.toolkit.UIToolkit
 
 class ObjectInspectorWindow : EditorUIPanel("Inspector"), IRenderable {
     override fun render(delta: Float) {
         this.beginUI()
         content = {
             val selection = EditorApplication.getInstance().getEditorSelection().getSelectedObjects()
+            val cursorPos = ImGui.getCursorPos()
 
             when {
-                selection.size > 1 ->
-                    EditorText.header("(Multiple selection [${selection.size}])")
+                selection.size > 1 -> {
+                    ImGui.setCursorPos(cursorPos.x + 20, cursorPos.y)
+                    UIText.semiBold("Multiple selections (${selection.size})")
+                }
 
-                selection.isEmpty() ->
-                    EditorText.header("(No selection)")
+                selection.isEmpty() -> {
+                    ImGui.setCursorPos(cursorPos.x + 20, cursorPos.y)
+                    UIText.semiBold("No selection.")
+                }
 
                 else -> {
                     val selected = selection.first()
 
                     drawTitleBar(selected)
 
-                    ImGui.spacing()
-                    ImGui.separator()
-                    ImGui.spacing()
+                    UIToolkit.spacedSeparator()
 
                     selected.components.forEach { component ->
                         drawInspectorForComponent(component)
                     }
                 }
             }
+
+            UIToolkit.spacedSeparator()
+
             drawToolsSettings()
         }
         this.endUI()

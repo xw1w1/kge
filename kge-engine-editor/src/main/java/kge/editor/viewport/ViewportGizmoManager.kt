@@ -26,7 +26,7 @@ object ViewportGizmoManager {
     @SerializeField("Gizmo Mode")
     var currentMode by enumField(GizmoMode.Translate, GizmoMode::class)
 
-    @SerializeField("Use local transformations")
+    @SerializeField("Move locally")
     var useLocals by boolField(false)
 
     private val dragStartHit = Vector3f()

@@ -12,18 +12,10 @@ class Camera : GameObject("Camera"), IPerspectiveViewCamera {
     override val viewMatrix = Matrix4f()
     override val projectionMatrix = Matrix4f()
 
-    override var fieldOfView: Float = 60f
+    override var fieldOfView: Float by cameraComponent::fov
 
-    override var zNear: Float = 0.1f
-    override var zFar: Float = 1000f
-
-    override fun onUpdate() {
-        super.onUpdate()
-
-        fieldOfView = this.cameraComponent.fov
-        zNear = this.cameraComponent.zNear
-        zFar = this.cameraComponent.zFar
-    }
+    override var zNear: Float by cameraComponent::zNear
+    override var zFar: Float by cameraComponent::zFar
 
     override fun updateViewMatrix(): Matrix4f {
         val inverseRotation = Quaternionf(transform.rotation).conjugate()

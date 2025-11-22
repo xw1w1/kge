@@ -46,7 +46,7 @@ class ViewportHotbar {
                 ViewportGizmoManager.setMode(GizmoMode.Translate)
             }
             if (ImGui.isItemHovered()) {
-                ImGui.setTooltip("Translate")
+                ImGui.setTooltip("Move")
             }
 
             if (ImGui.imageButton("##Rotate", UIIcon.getIcon("rotate")!!, buttonSize, buttonSize)) {
@@ -60,7 +60,7 @@ class ViewportHotbar {
                 ViewportGizmoManager.setMode(GizmoMode.Scale)
             }
             if (ImGui.isItemHovered()) {
-                ImGui.setTooltip("Scale")
+                ImGui.setTooltip("Resize")
             }
 
             ImGui.popStyleColor(3)

@@ -11,8 +11,8 @@ class KgeEditorStyle {
 
         style.windowPadding = ImVec2(6f, 6f)
         style.framePadding = ImVec2(6f, 3f)
-        style.itemSpacing = ImVec2(6f, 4f)
-        style.indentSpacing = 14f
+        style.itemSpacing = ImVec2(6f, 3f)
+        style.indentSpacing = 5f
 
         style.scrollbarSize = 12f
         style.grabMinSize = 8f
@@ -29,7 +29,7 @@ class KgeEditorStyle {
         style.popupBorderSize = 1f
         style.childBorderSize = 1f
 
-        fun vCol(r: Float, g: Float, b: Float, a: Float = 1f) = ImVec4(r/255f, g/255f, b/255f, a)
+        fun vCol(r: Float, g: Float, b: Float, a: Float = 1f) = ImVec4(r, g, b, a)
 
         style.colors[ImGuiCol.Text]                  = vCol(204f, 204f, 204f)
         style.colors[ImGuiCol.TextDisabled]          = vCol(107f, 107f, 107f)

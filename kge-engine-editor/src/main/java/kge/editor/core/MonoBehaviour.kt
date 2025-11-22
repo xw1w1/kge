@@ -1,12 +1,18 @@
 package kge.editor.core
 
+import kge.editor.component.Component
+
 abstract class MonoBehaviour {
     lateinit var gameObject: GameObject
         internal set
 
     val transform get() = gameObject.transform
 
-    open fun start() {}
-    open fun update(dt: Float) {}
+    inline fun <reified T : Component> getComponent(): T? {
+        return gameObject.getComponent<T>()
+    }
+
+    open fun onAwake() {}
+    open fun onUpdate(delta: Float) {}
     open fun onDestroy() {}
 }

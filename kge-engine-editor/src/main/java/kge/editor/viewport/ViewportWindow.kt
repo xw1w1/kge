@@ -13,7 +13,7 @@ import kge.editor.component.MeshRenderer
 import kge.editor.exclude
 import kge.editor.render.RenderPipeline
 import kge.editor.ui.EditorUIPanel
-import kge.ui.toolkit.EditorText
+import kge.ui.toolkit.UIText
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -129,7 +129,7 @@ class ViewportWindow : EditorUIPanel("Viewport") {
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0)
 
         val message = if (noCamera) "No active camera found" else "No active scene found"
-        EditorText.info(message)
+        UIText.info(message)
         isActiveThisFrame = false
     }
 

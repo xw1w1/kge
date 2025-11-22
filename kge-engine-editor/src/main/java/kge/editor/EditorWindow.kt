@@ -35,8 +35,6 @@ class EditorWindow(private val width: Int, private val height: Int) : IGLWindow 
         GL.createCapabilities()
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glDepthFunc(GL11.GL_LESS)
-        GL11.glEnable(GL11.GL_CULL_FACE)
-        GL11.glCullFace(GL11.GL_BACK)
     }
 
     fun show() {
