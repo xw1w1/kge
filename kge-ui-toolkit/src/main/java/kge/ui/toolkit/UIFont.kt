@@ -3,12 +3,14 @@ package kge.ui.toolkit
 import imgui.ImFont
 import imgui.ImGuiIO
 
-object EditorFont {
+object UIFont {
     lateinit var regular: ImFont
     lateinit var medium: ImFont
     lateinit var bold: ImFont
     lateinit var semiBold: ImFont
     lateinit var italic: ImFont
+
+    private val fonts = mutableMapOf<String, MutableMap<Weight, ImFont>>()
 
     fun load(io: ImGuiIO) {
         regular = io.fonts.addFontFromMemoryTTF(assetBytes("std/fonts/JetBrainsMono-Regular.ttf"), 18f)
@@ -20,5 +22,23 @@ object EditorFont {
 
     fun assetBytes(assetPath: String): ByteArray {
         return this.javaClass.classLoader.getResourceAsStream(assetPath).readAllBytes()
+    }
+
+    fun getDefaultFont(weight: Weight): ImFont {
+        return this.fonts["JetBrainsMono"]!!.get(weight)!!
+    }
+
+    fun loadFont(name: String, weight: Weight, byteArr: ByteArray, size: Float, io: ImGuiIO) {
+        this.fonts.getOrPut(name) { mutableMapOf() }.apply {
+            put(weight, io.fonts.addFontFromMemoryTTF(byteArr, size))
+        }
+    }
+
+    enum class Weight {
+        REGULAR,
+        ITALIC,
+        MEDIUM,
+        SEMIBOLD,
+        BOLD
     }
 }

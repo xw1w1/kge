@@ -6,7 +6,7 @@ import imgui.ImVec4
 import imgui.flag.ImGuiCol
 import org.joml.Vector4f
 
-object EditorText {
+object UIText {
     fun text(text: String, font: ImFont, color: Vector4f? = null, imColorV: ImVec4? = null) {
         ImGui.pushFont(font)
         if (color != null) {
@@ -20,25 +20,25 @@ object EditorText {
     }
 
     fun header(text: String) {
-        ImGui.pushFont(EditorFont.medium)
+        ImGui.pushFont(UIFont.medium)
         ImGui.text(text)
         ImGui.popFont()
     }
 
     fun label(text: String) {
-        ImGui.pushFont(EditorFont.regular)
+        ImGui.pushFont(UIFont.regular)
         ImGui.text(text)
         ImGui.popFont()
     }
 
     fun info(text: String) {
-        ImGui.pushFont(EditorFont.regular)
+        ImGui.pushFont(UIFont.regular)
         ImGui.textWrapped(text)
         ImGui.popFont()
     }
 
     fun colored(text: String, color: Vector4f) {
-        ImGui.pushFont(EditorFont.regular)
+        ImGui.pushFont(UIFont.regular)
         ImGui.pushStyleColor(ImGuiCol.Text, color.x, color.y, color.z, color.w)
         ImGui.text(text)
         ImGui.popStyleColor()
@@ -46,7 +46,13 @@ object EditorText {
     }
 
     fun bold(text: String) {
-        ImGui.pushFont(EditorFont.bold)
+        ImGui.pushFont(UIFont.bold)
+        ImGui.text(text)
+        ImGui.popFont()
+    }
+
+    fun semiBold(text: String) {
+        ImGui.pushFont(UIFont.semiBold)
         ImGui.text(text)
         ImGui.popFont()
     }

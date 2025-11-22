@@ -3,12 +3,13 @@ package kge.ui.toolkit
 import imgui.ImGui
 import imgui.flag.ImGuiTableColumnFlags
 import imgui.flag.ImGuiTableFlags
+import imgui.type.ImBoolean
 import imgui.type.ImString
 import kotlin.reflect.KClass
 import org.joml.Vector3f
 
 object FieldFactory {
-    private const val DEFAULT_WIDTH = 180f
+    private const val DEFAULT_WIDTH = 215f
 
     private inline fun layout(
         label: String,
@@ -25,7 +26,7 @@ object FieldFactory {
                 ImGui.tableNextRow()
                 ImGui.tableSetColumnIndex(0)
 
-                EditorText.renderLabelClipped(label)
+                UIText.renderLabelClipped(label)
 
                 ImGui.tableSetColumnIndex(1)
                 ImGui.setNextItemWidth(width)
@@ -67,7 +68,7 @@ object FieldFactory {
 
                 ImGui.tableNextRow()
                 ImGui.tableSetColumnIndex(0)
-                EditorText.renderLabelClipped(label)
+                UIText.renderLabelClipped(label)
                 ImGui.tableSetColumnIndex(1)
                 ImGui.setNextItemWidth(width)
 
@@ -90,7 +91,6 @@ object FieldFactory {
         return value
     }
 
-
     fun float(label: String, value: Float, step: Float = 0.1f, width: Float = DEFAULT_WIDTH, layout: FieldLayout = FieldLayout.Horizontal): Float {
         val v = floatArrayOf(value)
         layout(label, layout, width) { ImGui.dragFloat("##${label}_float", v, step) }
@@ -110,14 +110,9 @@ object FieldFactory {
     }
 
     fun bool(label: String, value: Boolean, layout: FieldLayout = FieldLayout.Horizontal): Boolean {
-        var v = value
-        if (layout == FieldLayout.Horizontal) {
-            if (ImGui.checkbox(label, v)) v = !v
-        } else {
-            ImGui.text(label)
-            if (ImGui.checkbox("##${label}_bool", v)) v = !v
-        }
-        return v
+        val v = ImBoolean(value)
+        layout(label, layout, DEFAULT_WIDTH) { ImGui.checkbox("##${label}_bool", v) }
+        return v.get()
     }
 
     fun floatArray(

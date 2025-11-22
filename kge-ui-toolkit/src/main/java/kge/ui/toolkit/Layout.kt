@@ -19,9 +19,7 @@ object Layout {
     }
 
     fun section(content: () -> Unit) {
-        ImGui.spacing()
-        ImGui.separator()
-        ImGui.spacing()
+        UIToolkit.spacedSeparator()
 
         content()
 

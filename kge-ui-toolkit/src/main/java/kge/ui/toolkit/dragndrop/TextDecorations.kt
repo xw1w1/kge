@@ -2,7 +2,7 @@ package kge.ui.toolkit.dragndrop
 
 import imgui.ImGui
 import imgui.flag.ImGuiCol
-import kge.ui.toolkit.EditorFont
+import kge.ui.toolkit.UIFont
 
 object TextDecorations {
     fun grayedText(action: () -> Unit) {
@@ -22,7 +22,7 @@ object TextDecorations {
     }
 
     fun pushDisabledText() {
-        ImGui.pushFont(EditorFont.italic)
+        ImGui.pushFont(UIFont.italic)
         ImGui.pushStyleColor(ImGuiCol.Text, 150, 150, 150, 150)
     }
 
